@@ -25,6 +25,21 @@
   const publicRecords = catalog => (catalog.records || catalog.layers || [])
     .filter(record => record.publication_status === 'public_approved');
 
+  const featureColor = (feature, layerConfig) => {
+    const scale = Array.isArray(layerConfig.colorScale) ? layerConfig.colorScale : [];
+    const property = layerConfig.valueProperty;
+    const value = property ? Number((feature.properties || {})[property]) : NaN;
+    if (!scale.length || !Number.isFinite(value)) return layerConfig.fillColor || layerConfig.color || '#2d7d61';
+    const ordered = scale.slice().sort((a, b) => Number(a.max) - Number(b.max));
+    const match = ordered.find(item => value <= Number(item.max));
+    return (match || ordered[ordered.length - 1]).color;
+  };
+
+  const popupLabel = (field, layerConfig) => {
+    const labels = layerConfig.popupLabels || {};
+    return labels[field] || field;
+  };
+
   document.title = `${config.title} · AMR Atlas`;
   setText('atlas-region-name', config.regionName);
   setText('atlas-title', config.title);
@@ -76,10 +91,10 @@
           const geojson = await fetchJson(layerConfig.file);
           if (geojson.type !== 'FeatureCollection') throw new Error('non e\' un FeatureCollection');
           const layer = L.geoJSON(geojson, {
-            style: () => ({
+            style: feature => ({
               color: layerConfig.color || '#2d7d61',
               weight: Number(layerConfig.weight || 1.2),
-              fillColor: layerConfig.fillColor || layerConfig.color || '#2d7d61',
+              fillColor: featureColor(feature, layerConfig),
               fillOpacity: Number(layerConfig.fillOpacity ?? 0.12)
             }),
             pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
@@ -93,7 +108,7 @@
               const props = feature.properties || {};
               const fields = layerConfig.popupFields || [];
               const rows = fields.filter(field => props[field] !== undefined && props[field] !== null)
-                .map(field => `<div><strong>${escapeHtml(field)}</strong><br>${escapeHtml(props[field])}</div>`)
+                .map(field => `<div><strong>${escapeHtml(popupLabel(field, layerConfig))}</strong><br>${escapeHtml(props[field])}</div>`)
                 .join('');
               featureLayer.bindPopup(`<div class="map-popup"><h3>${escapeHtml(props[layerConfig.labelProperty] || layerConfig.label)}</h3>${rows || '<p>Nessun dettaglio pubblico aggiuntivo.</p>'}</div>`);
             }

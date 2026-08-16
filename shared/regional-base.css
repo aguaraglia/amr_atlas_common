@@ -12,6 +12,16 @@
   width: 42px;
 }
 
+.brand-code-icon {
+  background-color: transparent;
+  background-image: var(--brand-icon);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  border-radius: 0;
+  color: transparent;
+}
+
 .map-stage {
   position: relative;
 }

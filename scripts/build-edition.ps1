@@ -11,7 +11,7 @@ $configPath = Join-Path $edition "atlas.config.json"
 if (-not (Test-Path -LiteralPath $configPath)) { throw "Missing atlas.config.json: $configPath" }
 $config = Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json
 
-$required = @("id", "regionCode", "regionName", "title", "shortName", "dataStatusLabel", "publicScopeSummary")
+$required = @("id", "regionCode", "regionName", "title", "shortName", "brandIcon", "dataStatusLabel", "publicScopeSummary")
 foreach ($field in $required) {
     if ([string]::IsNullOrWhiteSpace([string]$config.$field)) { throw "Missing required config field: $field" }
 }
@@ -29,6 +29,7 @@ $tokens = [ordered]@{
     "{{SHORT_NAME}}" = [string]$config.shortName
     "{{DATA_STATUS}}" = [string]$config.dataStatusLabel
     "{{PUBLIC_SCOPE_SUMMARY}}" = [string]$config.publicScopeSummary
+    "{{BRAND_ICON}}" = [string]$config.brandIcon
 }
 
 $templates = @("index.html", "evidence.html", "publications.html", "methodology.html", "about.html", "dissemination.html")
@@ -56,7 +57,14 @@ Set-Content -LiteralPath (Join-Path $staging ".nojekyll") -Value "" -Encoding AS
 $publicSource = Join-Path $edition "public"
 if (Test-Path -LiteralPath $publicSource) { Copy-Item -Path (Join-Path $publicSource "*") -Destination (Join-Path $staging "public") -Recurse -Force }
 
-$requiredFiles = @("index.html", "evidence.html", "publications.html", "methodology.html", "about.html", "dissemination.html", "atlas-config.js", "assets\atlas-core.js", "assets\publications.js", "assets\dissemination.js", "public\data\layer-catalog.json", "public\data\evidence-catalog.json", "public\outreach\assets\microbe-bacteria.png")
+# CSS custom-property URLs resolve relative to assets/regional-base.css.
+# Mirror the small brand asset under assets/ while keeping the canonical public path.
+$brandSource = Join-Path $staging ([string]$config.brandIcon)
+$brandMirror = Join-Path $staging ("assets\" + [string]$config.brandIcon)
+New-Item -ItemType Directory -Path (Split-Path -Parent $brandMirror) -Force | Out-Null
+Copy-Item -LiteralPath $brandSource -Destination $brandMirror -Force
+
+$requiredFiles = @("index.html", "evidence.html", "publications.html", "methodology.html", "about.html", "dissemination.html", "atlas-config.js", "assets\atlas-core.js", "assets\publications.js", "assets\dissemination.js", "public\data\layer-catalog.json", "public\data\evidence-catalog.json", "public\data\literature-catalog.json", ([string]$config.brandIcon), "public\outreach\assets\microbe-bacteria.png")
 foreach ($requiredFile in $requiredFiles) {
     if (-not (Test-Path -LiteralPath (Join-Path $staging $requiredFile))) { throw "Build validation failed: missing $requiredFile" }
 }
