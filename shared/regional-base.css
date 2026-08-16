@@ -1,0 +1,56 @@
+.brand-code {
+  align-items: center;
+  background: #176e8b;
+  border-radius: 10px;
+  color: #fff;
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 800;
+  height: 42px;
+  justify-content: center;
+  letter-spacing: 0.08em;
+  width: 42px;
+}
+
+.map-stage {
+  position: relative;
+}
+
+.map-empty-state {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid #d6e0dc;
+  border-radius: 12px;
+  left: 50%;
+  max-width: 390px;
+  padding: 18px 20px;
+  position: absolute;
+  text-align: center;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 500;
+}
+
+.map-empty-state h2 {
+  font-size: 1.05rem;
+  margin: 0 0 8px;
+}
+
+.map-empty-state p {
+  margin: 0;
+}
+
+.map-popup h3 {
+  margin: 0 0 8px;
+}
+
+.map-popup div + div {
+  border-top: 1px solid #e4ebe8;
+  margin-top: 6px;
+  padding-top: 6px;
+}
+
+.governance-note {
+  background: #f4f8f6;
+  border-left: 4px solid #2d7d61;
+  padding: 14px 16px;
+}

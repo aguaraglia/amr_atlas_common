@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aguaraglia.github.io/sardinia-one-health-amr-atlas/schema/amr_observations.schema.json",
+  "title": "Atlas AMR observations",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["observation_id", "source_id", "evidence_scope", "organism", "amr_target_id", "measure_type", "reported_value", "reported_unit", "observation_period", "privacy"],
+  "properties": {
+    "observation_id": {"type": "string"},
+    "source_id": {"type": "string"},
+    "snapshot_id": {"type": "string"},
+    "evidence_scope": {"type": "string", "enum": ["genotype", "phenotype", "antimicrobial_use", "literature", "benchmark"]},
+    "organism": {"type": "string"},
+    "host": {"type": ["string", "null"]},
+    "matrix": {"type": ["string", "null"]},
+    "amr_target_id": {"type": "string"},
+    "measure_type": {"type": "string", "enum": ["count", "proportion", "prevalence", "resistance_rate", "consumption", "reported_value"]},
+    "reported_value": {"type": "number"},
+    "reported_unit": {"type": "string"},
+    "numerator": {"type": ["number", "null"]},
+    "denominator": {"type": ["number", "null"]},
+    "observation_period": {"type": "string"},
+    "geography_level": {"type": ["string", "null"]},
+    "geography_id": {"type": ["string", "null"]},
+    "privacy": {"type": "string", "enum": ["public", "generalized", "restricted"]},
+    "evidence_url": {"type": ["string", "null"], "format": "uri"},
+    "method_version": {"type": ["string", "null"]},
+    "notes": {"type": ["string", "null"]}
+  }
+}
