@@ -39,7 +39,7 @@ foreach ($templateName in $templates) {
     Set-Content -LiteralPath (Join-Path $staging $templateName) -Value $content -Encoding UTF8
 }
 
-$sharedFiles = @("atlas-core.js", "publications.js", "dissemination.js", "outreach-module-one.js", "outreach-module-two.js", "outreach-modules-three-twelve.js", "styles.css", "regional-base.css")
+$sharedFiles = @("atlas-core.js", "sidebar-filters.js", "publications.js", "dissemination.js", "outreach-module-one.js", "outreach-module-two.js", "outreach-modules-three-twelve.js", "styles.css", "regional-base.css")
 foreach ($sharedFile in $sharedFiles) {
     Copy-Item -LiteralPath (Join-Path $commonRoot "shared\$sharedFile") -Destination (Join-Path $staging "assets\$sharedFile")
 }
@@ -64,7 +64,7 @@ $brandMirror = Join-Path $staging ("assets\" + [string]$config.brandIcon)
 New-Item -ItemType Directory -Path (Split-Path -Parent $brandMirror) -Force | Out-Null
 Copy-Item -LiteralPath $brandSource -Destination $brandMirror -Force
 
-$requiredFiles = @("index.html", "evidence.html", "publications.html", "methodology.html", "about.html", "dissemination.html", "atlas-config.js", "assets\atlas-core.js", "assets\publications.js", "assets\dissemination.js", "public\data\layer-catalog.json", "public\data\evidence-catalog.json", "public\data\literature-catalog.json", ([string]$config.brandIcon), "public\outreach\assets\microbe-bacteria.png")
+$requiredFiles = @("index.html", "evidence.html", "publications.html", "methodology.html", "about.html", "dissemination.html", "atlas-config.js", "assets\atlas-core.js", "assets\sidebar-filters.js", "assets\publications.js", "assets\dissemination.js", "public\data\layer-catalog.json", "public\data\evidence-catalog.json", "public\data\literature-catalog.json", ([string]$config.brandIcon), "public\outreach\assets\microbe-bacteria.png")
 foreach ($requiredFile in $requiredFiles) {
     if (-not (Test-Path -LiteralPath (Join-Path $staging $requiredFile))) { throw "Build validation failed: missing $requiredFile" }
 }

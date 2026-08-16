@@ -20,9 +20,31 @@
     <aside class="dashboard-sidebar" aria-label="Stato dell'atlante">
       <a class="atlas-brand" href="index.html"><span class="brand-code brand-code-icon" style="--brand-icon:url('{{BRAND_ICON}}')" aria-hidden="true">{{REGION_CODE}}</span><span><strong id="atlas-short-name">{{SHORT_NAME}}</strong><small>AMR Atlas</small></span></a>
       <div class="sidebar-scroll">
-        <p class="sidebar-kicker">Edizione regionale</p><p class="panel-note">La mappa mostra soltanto dataset già verificati per fonte, condizioni d'uso, scala geografica e limiti interpretativi.</p><div class="amr-state" id="atlas-status-label">{{DATA_STATUS}}</div>
-        <div class="dashboard-metrics" aria-label="Riepilogo dinamico"><div><strong id="metric-visible">0</strong><span>elementi geografici</span></div><div><strong id="metric-sources">0</strong><span>layer pubblici</span></div></div>
-        <section class="filtered-evidence"><div class="filtered-heading"><h3>Criterio di pubblicazione</h3></div><p class="empty-filter">Le fonti ancora in valutazione restano documentate nel registro, ma non vengono mostrate come layer finché i controlli editoriali interni non sono completi.</p></section>
+        <p class="sidebar-kicker">Esplora l'atlante</p>
+        <p class="panel-note">Filtra le evidenze pubbliche per ambito, periodo e fonte. I layer geografici si attivano separatamente nella mappa.</p>
+        <label for="evidence-domain">Ambito dell'evidenza</label>
+        <select id="evidence-domain"><option value="ALL">Tutti gli ambiti</option></select>
+        <label for="evidence-period">Periodo</label>
+        <select id="evidence-period"><option value="ALL">Tutti i periodi</option></select>
+        <label for="evidence-publisher">Fonte</label>
+        <select id="evidence-publisher"><option value="ALL">Tutte le fonti</option></select>
+        <div class="amr-state" id="evidence-filter-state">Caricamento delle evidenze pubbliche...</div>
+        <div class="dashboard-tools">
+          <button id="reset-evidence-filter" type="button">Azzera filtri</button>
+          <span id="filter-status" aria-live="polite">Tutte le evidenze</span>
+        </div>
+        <div class="dashboard-metrics" aria-label="Riepilogo dei filtri">
+          <div><strong id="filter-metric-visible">0</strong><span>evidenze filtrate</span></div>
+          <div><strong id="filter-metric-sources">0</strong><span>fonti compatibili</span></div>
+        </div>
+        <section class="time-profile" aria-labelledby="time-profile-title">
+          <div class="filtered-heading"><h3 id="time-profile-title">Profilo temporale</h3><span>evidenze</span></div>
+          <div id="time-distribution" class="time-distribution" aria-live="polite"></div>
+        </section>
+        <section class="filtered-evidence" aria-labelledby="filtered-evidence-title">
+          <div class="filtered-heading"><h3 id="filtered-evidence-title">Risultati del filtro</h3><span id="filtered-count">0</span></div>
+          <div id="filtered-evidence-list"><p class="empty-filter">Caricamento dati...</p></div>
+        </section>
       </div>
     </aside>
     <div class="dashboard-workspace">
@@ -36,6 +58,6 @@
       </main>
     </div>
   </div>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="atlas-config.js"></script><script src="assets/atlas-core.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="atlas-config.js"></script><script src="assets/atlas-core.js"></script><script src="assets/sidebar-filters.js"></script>
 </body>
 </html>

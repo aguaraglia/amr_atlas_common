@@ -64,3 +64,34 @@
   border-left: 4px solid #2d7d61;
   padding: 14px 16px;
 }
+
+.publication-filters {
+  align-items: end;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(240px, 1fr) minmax(190px, 0.35fr);
+  margin: 18px 0;
+}
+
+.publication-filters label {
+  color: #49657d;
+  display: grid;
+  font-size: 0.75rem;
+  font-weight: 800;
+  gap: 6px;
+}
+
+.publication-filters input,
+.publication-filters select {
+  background: #fff;
+  border: 1px solid #bdccd8;
+  border-radius: 5px;
+  color: #173c5d;
+  font: inherit;
+  min-height: 42px;
+  padding: 8px 10px;
+}
+
+@media (max-width: 700px) {
+  .publication-filters { grid-template-columns: 1fr; }
+}
