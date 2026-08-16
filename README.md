@@ -1,7 +1,8 @@
 # AMR Atlas Common
 
-Base statica condivisa per atlanti AMR regionali. Contiene il runtime Leaflet,
-lo stile, i template HTML e la procedura di build. Non contiene dati regionali.
+Base statica condivisa per atlanti AMR regionali. Contiene runtime Leaflet,
+stile, template HTML, catalogo delle pubblicazioni, percorso divulgativo e
+procedura di build. Non contiene dati regionali.
 
 Le edizioni attualmente previste sono:
 
@@ -20,7 +21,16 @@ Ogni edizione deve fornire:
 
 Il runtime carica esclusivamente record con `publication_status` uguale a
 `public_approved`. Gli stati `candidate`, `verified` e `restricted` non vengono
-visualizzati sulla mappa pubblica.
+visualizzati sulla mappa pubblica. La pagina Pubblicazioni può elencare anche
+fonti candidate, identificandole chiaramente come fonti di contesto senza dati
+pubblicati.
+
+## Sezioni comuni
+
+La build genera sei pagine coerenti per ogni edizione: Atlante, Evidenze,
+Pubblicazioni, Metodo, Progetto e Divulgazione. La Divulgazione comprende dodici
+moduli comuni; eventuali riferimenti regionali devono restare esplicitamente
+distinti dalle evidenze epidemiologiche.
 
 ## Build
 

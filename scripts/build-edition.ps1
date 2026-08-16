@@ -31,24 +31,33 @@ $tokens = [ordered]@{
     "{{PUBLIC_SCOPE_SUMMARY}}" = [string]$config.publicScopeSummary
 }
 
-foreach ($templateName in @("index.html", "evidence.html", "methodology.html", "about.html")) {
+$templates = @("index.html", "evidence.html", "publications.html", "methodology.html", "about.html", "dissemination.html")
+foreach ($templateName in $templates) {
     $content = Get-Content -LiteralPath (Join-Path $commonRoot "templates\$templateName") -Raw -Encoding UTF8
     foreach ($token in $tokens.Keys) { $content = $content.Replace($token, $tokens[$token]) }
     Set-Content -LiteralPath (Join-Path $staging $templateName) -Value $content -Encoding UTF8
 }
 
-Copy-Item -LiteralPath (Join-Path $commonRoot "shared\atlas-core.js") -Destination (Join-Path $staging "assets\atlas-core.js")
-Copy-Item -LiteralPath (Join-Path $commonRoot "shared\styles.css") -Destination (Join-Path $staging "assets\styles.css")
-Copy-Item -LiteralPath (Join-Path $commonRoot "shared\regional-base.css") -Destination (Join-Path $staging "assets\regional-base.css")
+$sharedFiles = @("atlas-core.js", "publications.js", "dissemination.js", "outreach-module-one.js", "outreach-module-two.js", "outreach-modules-three-twelve.js", "styles.css", "regional-base.css")
+foreach ($sharedFile in $sharedFiles) {
+    Copy-Item -LiteralPath (Join-Path $commonRoot "shared\$sharedFile") -Destination (Join-Path $staging "assets\$sharedFile")
+}
+
+$outreachAssets = Join-Path $commonRoot "shared\outreach-assets"
+if (Test-Path -LiteralPath $outreachAssets) {
+    New-Item -ItemType Directory -Path (Join-Path $staging "public\outreach\assets") -Force | Out-Null
+    Copy-Item -Path (Join-Path $outreachAssets "*") -Destination (Join-Path $staging "public\outreach\assets") -Recurse -Force
+}
 
 $configJson = $config | ConvertTo-Json -Depth 50 -Compress
 Set-Content -LiteralPath (Join-Path $staging "atlas-config.js") -Value ("window.AMR_ATLAS_CONFIG = " + $configJson + ";") -Encoding UTF8
 Set-Content -LiteralPath (Join-Path $staging ".nojekyll") -Value "" -Encoding ASCII
 
 $publicSource = Join-Path $edition "public"
-if (Test-Path -LiteralPath $publicSource) { Copy-Item -LiteralPath $publicSource -Destination (Join-Path $staging "public") -Recurse }
+if (Test-Path -LiteralPath $publicSource) { Copy-Item -Path (Join-Path $publicSource "*") -Destination (Join-Path $staging "public") -Recurse -Force }
 
-foreach ($requiredFile in @("index.html", "evidence.html", "methodology.html", "about.html", "atlas-config.js", "assets\atlas-core.js", "public\data\layer-catalog.json", "public\data\evidence-catalog.json")) {
+$requiredFiles = @("index.html", "evidence.html", "publications.html", "methodology.html", "about.html", "dissemination.html", "atlas-config.js", "assets\atlas-core.js", "assets\publications.js", "assets\dissemination.js", "public\data\layer-catalog.json", "public\data\evidence-catalog.json", "public\outreach\assets\microbe-bacteria.png")
+foreach ($requiredFile in $requiredFiles) {
     if (-not (Test-Path -LiteralPath (Join-Path $staging $requiredFile))) { throw "Build validation failed: missing $requiredFile" }
 }
 
@@ -62,5 +71,3 @@ Move-Item -LiteralPath $staging -Destination $output
 
 Write-Output "BUILD_OK=$output"
 Write-Output "COMMON_VERSION=$((Get-Content -LiteralPath (Join-Path $commonRoot 'VERSION') -Raw).Trim())"
-
-
