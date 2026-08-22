@@ -205,69 +205,94 @@
       parentInput.checked = on === total && map.hasLayer(root.group);
     };
 
-    const attachNestedControl = (root) => {
-      const nameNode = overlayNameNode(root.group);
-      const label = nameNode && nameNode.closest('label');
-      if (!label) return;
-      const overlays = label.parentNode;
-      if (label.dataset.nested === '1' && root.kidsEl && overlays.contains(root.kidsEl)) return;
-      if (root.kidsEl && root.kidsEl.parentNode) root.kidsEl.remove();
-      if (root.toggleEl && root.toggleEl.parentNode) root.toggleEl.remove();
-      label.dataset.nested = '1';
-      label.classList.add('layer-group-parent');
-      const toggle = document.createElement('button');
-      toggle.type = 'button';
-      toggle.className = 'layer-explode-toggle';
-      toggle.setAttribute('aria-expanded', 'false');
-      toggle.title = 'Mostra le categorie';
-      toggle.textContent = '\u25b8';
-      const kids = document.createElement('div');
-      kids.className = 'layer-children';
-      kids.hidden = true;
-      label.insertAdjacentElement('afterend', toggle);
-      toggle.insertAdjacentElement('afterend', kids);
-      root.toggleEl = toggle;
-      root.kidsEl = kids;
+    const mountCustomGroup = (root) => {
+      const overlays = overlayControl.getContainer().querySelector('.leaflet-control-layers-overlays');
+      if (!overlays || root.ui) return;
+      const box = document.createElement('div');
+      box.className = 'custom-layer-group';
+      const head = document.createElement('label');
+      head.className = 'custom-layer-head';
+      const all = document.createElement('input');
+      all.type = 'checkbox';
+      const headText = document.createElement('span');
+      headText.textContent = ' ' + countedLabel(root.config.groupTotalLabel || root.config.label, root.count);
+      head.appendChild(all);
+      head.appendChild(headText);
+      const details = document.createElement('details');
+      details.className = 'custom-layer-details';
+      details.open = true;
+      const summary = document.createElement('summary');
+      summary.textContent = 'Categorie';
+      details.appendChild(summary);
       root.childBox = new Map();
       for (const child of root.children) {
         const row = document.createElement('label');
-        row.className = 'layer-child-row';
+        row.className = 'custom-layer-child';
         const input = document.createElement('input');
         input.type = 'checkbox';
-        input.addEventListener('mousedown', event => event.stopPropagation());
-        input.addEventListener('click', event => event.stopPropagation());
-        input.addEventListener('change', event => {
-          event.stopPropagation();
-          if (input.checked) root.selected.add(child.category);
-          else root.selected.delete(child.category);
-          if (root.selected.size === 0) {
-            if (map.hasLayer(root.group)) map.removeLayer(root.group);
-          } else if (!map.hasLayer(root.group)) {
-            root.group.addTo(map);
-          } else {
-            paintFiltered(root);
-          }
-          syncNestedChecks(root);
-          attachNestedControl(root);
-          refreshMetrics();
-        });
         const swatch = document.createElement('span');
         swatch.className = 'layer-swatch';
         swatch.style.background = child.config.color || '#555';
+        const text = document.createElement('span');
+        text.textContent = countedLabel(child.category, child.count);
         row.appendChild(input);
         row.appendChild(swatch);
-        row.appendChild(document.createTextNode(' ' + countedLabel(child.category, child.count)));
-        kids.appendChild(row);
-        root.childBox.set(child.category, input);
+        row.appendChild(text);
+        details.appendChild(row);
+        root.childBox.set(child.category, { input: input, text: text });
       }
-      toggle.addEventListener('mousedown', event => event.stopPropagation());
-      toggle.addEventListener('click', event => {
-        event.preventDefault();
-        event.stopPropagation();
-        kids.hidden = !kids.hidden;
-        toggle.textContent = kids.hidden ? '\u25b8' : '\u25be';
-        toggle.setAttribute('aria-expanded', kids.hidden ? 'false' : 'true');
+      box.appendChild(head);
+      box.appendChild(details);
+      overlays.appendChild(box);
+      root.ui = { box: box, all: all, headText: headText, details: details };
+      L.DomEvent.disableClickPropagation(box);
+      L.DomEvent.disableScrollPropagation(box);
+
+      const applySelection = () => {
+        if (root.selected.size === 0) {
+          if (map.hasLayer(root.group)) map.removeLayer(root.group);
+          else {
+            root.group.clearLayers();
+            root.visibleCount = 0;
+          }
+        } else if (!map.hasLayer(root.group)) {
+          root.group.addTo(map);
+          loadLayerData(root);
+        } else {
+          paintFiltered(root);
+        }
+        syncCustomGroup(root);
+        refreshMetrics();
+      };
+
+      all.addEventListener('change', () => {
+        root.selected = all.checked ? new Set(root.children.map(child => child.category)) : new Set();
+        applySelection();
       });
+      for (const child of root.children) {
+        root.childBox.get(child.category).input.addEventListener('change', (event) => {
+          if (event.target.checked) root.selected.add(child.category);
+          else root.selected.delete(child.category);
+          applySelection();
+        });
+      }
+    };
+
+    const syncCustomGroup = (root) => {
+      if (!root.ui) return;
+      const total = root.children.length;
+      const on = root.selected.size;
+      root.ui.all.indeterminate = on > 0 && on < total;
+      root.ui.all.checked = on === total && on > 0;
+      root.ui.headText.textContent = ' ' + countedLabel(root.config.groupTotalLabel || root.config.label, root.count);
+      if (root.childBox) {
+        for (const child of root.children) {
+          const row = root.childBox.get(child.category);
+          if (!row) continue;
+          row.input.checked = root.selected.has(child.category);
+          row.text.textContent = countedLabel(child.category, child.count);
+        }
+      }
     };
 
     const populateExploded = (root, geojson) => {
@@ -283,13 +308,12 @@
         child.count = (buckets.get(child.category) || []).length;
       }
       root.count = (geojson.features || []).length;
-      setOverlayName(root.group, countedLabel(root.config.groupTotalLabel || root.config.label, root.count));
       if (!root.selected || root.selected.size === 0) {
         root.selected = new Set(root.children.map(child => child.category));
       }
       paintFiltered(root);
-      attachNestedControl(root);
-      syncNestedChecks(root);
+      mountCustomGroup(root);
+      syncCustomGroup(root);
       root.state = 'loaded';
       root.draws = true;
     };
@@ -304,12 +328,12 @@
       root.state = 'loading';
       try {
         const geojson = await fetchJson(root.config.file);
-        if (geojson.type !== 'FeatureCollection') throw new Error('non e\' un FeatureCollection');
+        if (geojson.type !== 'FeatureCollection') throw new Error('non e un FeatureCollection');
         if (root.config.explodeBy) populateExploded(root, geojson);
         else paintGeoJson(root, geojson);
       } catch (error) {
         root.state = 'failed';
-        const message = `${root.config.id}: ${error.message}`;
+        const message = root.config.id + ': ' + error.message;
         errors.push(message);
         console.warn('[AMR Atlas] Skipping layer', message);
       }
@@ -321,6 +345,8 @@
       const approvedLayers = publicRecords(catalog);
       const empty = document.getElementById('map-empty-state');
       if (empty) empty.hidden = approvedLayers.length > 0;
+      overlayControl.getContainer().classList.add('leaflet-control-layers-expanded');
+      L.DomEvent.disableClickPropagation(overlayControl.getContainer());
 
       for (const layerConfig of approvedLayers) {
         if (layerConfig.explodeBy) {
@@ -338,25 +364,23 @@
           const counts = layerConfig.explodeCounts || {};
           for (const category of Object.keys(colors)) {
             root.children.push({
-              config: {
-                ...layerConfig,
+              config: Object.assign({}, layerConfig, {
                 label: category,
                 color: colors[category] || layerConfig.color,
                 fillColor: colors[category] || layerConfig.fillColor || layerConfig.color
-              },
-              category,
+              }),
+              category: category,
               count: Number(counts[category]) || 0
             });
           }
-          overlayControl.addOverlay(root.group, countedLabel(layerConfig.groupTotalLabel || layerConfig.label, root.count));
-          attachNestedControl(root);
+          mountCustomGroup(root);
           if (layerConfig.defaultVisible) {
             root.selected = new Set(root.children.map(child => child.category));
             root.group.addTo(map);
           }
         } else {
           const group = L.layerGroup();
-          const entry = { config: layerConfig, group, state: 'idle', count: Number(layerConfig.feature_count) || 0, draws: true };
+          const entry = { config: layerConfig, group: group, state: 'idle', count: Number(layerConfig.feature_count) || 0, draws: true };
           entries.push(entry);
           overlayControl.addOverlay(group, countedLabel(layerConfig.label, layerConfig.feature_count));
           if (layerConfig.defaultVisible) group.addTo(map);
@@ -369,18 +393,14 @@
         if (entry.children && entry.selected.size === 0) {
           entry.selected = new Set(entry.children.map(child => child.category));
         }
-        loadLayerData(entry).then(() => {
-          if (entry.children) attachNestedControl(entry);
-        });
+        loadLayerData(entry);
       });
       map.on('overlayremove', event => {
         const entry = entries.find(item => item.group === event.layer);
         if (entry && entry.children) {
-          entry.selected = new Set();
           entry.group.clearLayers();
           entry.visibleCount = 0;
-          syncNestedChecks(entry);
-          attachNestedControl(entry);
+          syncCustomGroup(entry);
         }
         refreshMetrics();
       });
