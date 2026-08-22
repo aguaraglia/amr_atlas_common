@@ -21,13 +21,17 @@
       <a class="atlas-brand" href="index.html"><span class="brand-code brand-code-icon" style="--brand-icon:url('{{BRAND_ICON}}')" aria-hidden="true">{{REGION_CODE}}</span><span><strong id="atlas-short-name">{{SHORT_NAME}}</strong><small>AMR Atlas</small></span></a>
       <div class="sidebar-scroll">
         <p class="sidebar-kicker">Esplora l'atlante</p>
-        <p class="panel-note">Filtra insieme classe antimicrobica e periodo. I layer geografici si attivano separatamente nella mappa.</p>
+        <p class="panel-note">Filtra classe antimicrobica, microrganismo, matrice e periodo. Vocabolario allineato a EARS-Net / EFSA SSD2. I layer geografici si attivano separatamente nella mappa.</p>
         <label for="amr-target">Classe o target AMR</label>
         <select id="amr-target"><option value="AMR_ANY">Tutte le classi</option></select>
         <label for="evidence-period">Periodo dell'evidenza</label>
         <select id="evidence-period"><option value="ALL">Tutti i periodi pubblicati</option></select>
         <label for="evidence-domain">Ambito One Health</label>
         <select id="evidence-domain"><option value="ALL">Tutti gli ambiti</option></select>
+        <label for="amr-organism">Microrganismo</label>
+        <select id="amr-organism"><option value="ORG_ANY">Tutti i microrganismi</option></select>
+        <label for="amr-matrix">Matrice</label>
+        <select id="amr-matrix"><option value="MATRIX_ANY">Tutte le matrici</option></select>
         <div class="amr-state" id="evidence-filter-state">Seleziona una classe per filtrare le evidenze pubbliche disponibili.</div>
         <div class="dashboard-tools">
           <button id="reset-evidence-filter" type="button">Azzera filtri</button>
@@ -50,7 +54,7 @@
     <div class="dashboard-workspace">
       <header class="workspace-topbar"><nav class="workspace-nav"><a class="active" href="index.html">Panoramica</a><a href="evidence.html">Evidenze</a><a href="publications.html">Pubblicazioni</a><a href="dissemination.html">Divulgazione</a></nav><span class="status" id="status">Caricamento configurazione...</span></header>
       <main class="workspace-main">
-        <section class="intro"><div><p class="section-kicker">CRUSCOTTO PUBBLICO</p><h1 id="atlas-title">{{TITLE}}</h1></div><p>Filtra insieme classe antimicrobica e periodo. La mappa mostra layer geografici pubblici; i conteggi sono evidenze documentate, non una prevalenza regionale.</p></section>
+        <section class="intro"><div><p class="section-kicker">CRUSCOTTO PUBBLICO</p><h1 id="atlas-title">{{TITLE}}</h1></div><p>Filtra classe, microrganismo, matrice e periodo. La mappa mostra layer geografici pubblici; i conteggi sono evidenze documentate, non una prevalenza regionale.</p></section>
         <section class="overview-strip" aria-label="Copertura pubblica"><div><strong id="overview-localized">0</strong><span>elementi localizzati</span></div><div><strong id="overview-layers">0</strong><span>layer approvati</span></div><div><strong id="overview-evidence">0</strong><span>evidenze pubbliche</span></div></section>
         <div class="atlas-grid"><section class="map-stage" aria-label="Mappa di {{REGION_NAME}}"><div id="map"></div><div class="map-empty-state" id="map-empty-state"><h2>Base cartografica pronta</h2><p>I layer regionali compariranno dopo la verifica di fonte, licenza e geometrie.</p></div></section><aside class="results-rail"><p class="rail-kicker">DETTAGLIO</p><h2 id="selected-evidence-title">Evidenza selezionata</h2><div id="selected-evidence" class="selected-evidence"><p>Seleziona un risultato del filtro per leggerne contesto, periodo e limiti di interpretazione.</p></div><a class="rail-link" href="evidence.html">Apri evidenze e fonti <span aria-hidden="true">→</span></a></aside></div>
         <section class="data-digest"><div class="data-digest-heading"><div><p class="section-kicker">QUADRO DATI</p><h2>Fonti e indicatori pubblici</h2></div><a href="evidence.html">Apri il registro</a></div><div id="dashboard-evidence" class="digest-grid"></div></section>
