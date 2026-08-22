@@ -210,7 +210,10 @@
       if (!overlays || root.ui) return;
       const box = document.createElement('div');
       box.className = 'custom-layer-group';
-      const head = document.createElement('div');
+      const details = document.createElement('details');
+      details.className = 'custom-layer-details';
+      details.open = true;
+      const head = document.createElement('summary');
       head.className = 'custom-layer-head';
       const headText = document.createElement('span');
       headText.textContent = countedLabel(root.config.groupTotalLabel || root.config.label, root.count);
@@ -234,10 +237,11 @@
         list.appendChild(row);
         root.childBox.set(child.category, { input: input, text: text });
       }
-      box.appendChild(head);
-      box.appendChild(list);
+      details.appendChild(head);
+      details.appendChild(list);
+      box.appendChild(details);
       overlays.appendChild(box);
-      root.ui = { box: box, headText: headText };
+      root.ui = { box: box, headText: headText, details: details };
       L.DomEvent.disableClickPropagation(box);
       L.DomEvent.disableScrollPropagation(box);
 
