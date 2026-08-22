@@ -157,7 +157,9 @@
         const group = L.layerGroup();
         const entry = { config: layerConfig, group, state: 'idle', count: 0 };
         entries.push(entry);
-        overlayControl.addOverlay(group, layerConfig.label);
+        const n = Number(layerConfig.feature_count);
+        const overlayLabel = Number.isFinite(n) ? `${layerConfig.label} (${n})` : layerConfig.label;
+        overlayControl.addOverlay(group, overlayLabel);
         if (layerConfig.defaultVisible) group.addTo(map);
       }
 
