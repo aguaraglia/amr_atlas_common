@@ -52,13 +52,18 @@
       fillColor: featureColor(feature, layerConfig),
       fillOpacity: Number(layerConfig.fillOpacity ?? 0.12)
     }),
-    pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
-      radius: Number(layerConfig.radius || 5),
-      color: layerConfig.color || '#2d7d61',
-      fillColor: layerConfig.fillColor || layerConfig.color || '#2d7d61',
-      fillOpacity: 0.75,
-      weight: 1
-    }),
+    pointToLayer: (feature, latlng) => {
+      const colors = layerConfig.explodeColors || {};
+      const key = layerConfig.explodeBy ? String((feature.properties || {})[layerConfig.explodeBy] ?? '') : '';
+      const fill = colors[key] || layerConfig.fillColor || layerConfig.color || '#2d7d61';
+      return L.circleMarker(latlng, {
+        radius: Number(layerConfig.radius || 5),
+        color: fill,
+        fillColor: fill,
+        fillOpacity: 0.8,
+        weight: 1
+      });
+    },
     onEachFeature: (feature, featureLayer) => {
       const props = feature.properties || {};
       const fields = layerConfig.popupFields || [];
@@ -145,7 +150,7 @@
 
     const refreshMetrics = () => {
       const onMap = entries.filter(item => item.state === 'loaded' && item.draws !== false && map.hasLayer(item.group));
-      const total = onMap.reduce((sum, item) => sum + (item.count || 0), 0);
+      const total = onMap.reduce((sum, item) => sum + ((item.visibleCount ?? item.count) || 0), 0);
       const loadedCount = entries.filter(item => item.state === 'loaded' && item.draws !== false).length;
       setText('metric-visible', total.toLocaleString('it-IT'));
       setText('metric-sources', onMap.length.toLocaleString('it-IT'));
@@ -169,55 +174,125 @@
       entry.state = 'loaded';
     };
 
-    const populateExploded = (root, geojson) => {
+    const paintFiltered = (root) => {
+      if (!root.geojson) return;
+      root.group.clearLayers();
+      if (!map.hasLayer(root.group) || !root.selected || root.selected.size === 0) {
+        root.visibleCount = 0;
+        return;
+      }
       const property = root.config.explodeBy;
-      const colors = root.config.explodeColors || {};
-      const prefix = root.config.explodeLabelPrefix || '';
+      const features = (root.geojson.features || []).filter(feature => (
+        root.selected.has(String((feature.properties || {})[property] ?? 'Altro'))
+      ));
+      L.geoJSON({ type: 'FeatureCollection', features }, geoJsonOptions(root.config)).addTo(root.group);
+      root.visibleCount = features.length;
+      root.count = (root.geojson.features || []).length;
+      root.state = 'loaded';
+    };
+
+    const syncNestedChecks = (root) => {
+      if (root.childBox) {
+        for (const [category, input] of root.childBox.entries()) {
+          input.checked = root.selected.has(category);
+        }
+      }
+      const parentInput = overlayInput(root.group);
+      if (!parentInput) return;
+      const total = root.children.length;
+      const on = root.selected.size;
+      parentInput.indeterminate = on > 0 && on < total;
+      parentInput.checked = on === total && map.hasLayer(root.group);
+    };
+
+    const attachNestedControl = (root) => {
+      const nameNode = overlayNameNode(root.group);
+      const label = nameNode && nameNode.closest('label');
+      if (!label || label.dataset.nested === '1') return;
+      label.dataset.nested = '1';
+      label.classList.add('layer-group-parent');
+      const wrap = document.createElement('div');
+      wrap.className = 'layer-group-wrap';
+      label.parentNode.insertBefore(wrap, label);
+      wrap.appendChild(label);
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'layer-explode-toggle';
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.title = 'Mostra le categorie';
+      toggle.textContent = '\u25b8';
+      label.appendChild(toggle);
+      const kids = document.createElement('div');
+      kids.className = 'layer-children';
+      kids.hidden = true;
+      wrap.appendChild(kids);
+      root.childBox = new Map();
+      for (const child of root.children) {
+        const row = document.createElement('label');
+        row.className = 'layer-child-row';
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.addEventListener('click', event => event.stopPropagation());
+        input.addEventListener('change', event => {
+          event.stopPropagation();
+          if (input.checked) root.selected.add(child.category);
+          else root.selected.delete(child.category);
+          if (root.selected.size === 0) {
+            if (map.hasLayer(root.group)) map.removeLayer(root.group);
+          } else if (!map.hasLayer(root.group)) {
+            root.group.addTo(map);
+          } else {
+            paintFiltered(root);
+          }
+          syncNestedChecks(root);
+          refreshMetrics();
+        });
+        const swatch = document.createElement('span');
+        swatch.className = 'layer-swatch';
+        swatch.style.background = child.config.color || '#555';
+        row.appendChild(input);
+        row.appendChild(swatch);
+        row.appendChild(document.createTextNode(' ' + countedLabel(child.category, child.count)));
+        kids.appendChild(row);
+        root.childBox.set(child.category, input);
+      }
+      toggle.addEventListener('click', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        kids.hidden = !kids.hidden;
+        toggle.textContent = kids.hidden ? '\u25b8' : '\u25be';
+        toggle.setAttribute('aria-expanded', kids.hidden ? 'false' : 'true');
+      });
+    };
+
+    const populateExploded = (root, geojson) => {
+      root.geojson = geojson;
+      const property = root.config.explodeBy;
       const buckets = new Map();
       for (const feature of geojson.features || []) {
         const key = String((feature.properties || {})[property] ?? 'Altro');
         if (!buckets.has(key)) buckets.set(key, []);
         buckets.get(key).push(feature);
       }
-      const known = root.children.slice();
-      for (const key of buckets.keys()) {
-        if (!known.some(child => child.category === key)) {
-          const childConfig = {
-            ...root.config,
-            label: `${prefix}${key}`,
-            color: colors[key] || root.config.color,
-            fillColor: colors[key] || root.config.fillColor || root.config.color
-          };
-          const child = {
-            config: childConfig,
-            group: L.layerGroup(),
-            state: 'idle',
-            count: 0,
-            parent: root,
-            category: key,
-            draws: true
-          };
-          root.children.push(child);
-          entries.push(child);
-          overlayControl.addOverlay(child.group, countedLabel(childConfig.label, buckets.get(key).length));
-          if (map.hasLayer(root.group) || root.children.some(item => map.hasLayer(item.group))) {
-            child.group.addTo(map);
-          }
-        }
-      }
       for (const child of root.children) {
-        const features = buckets.get(child.category) || [];
-        paintGeoJson(child, { type: 'FeatureCollection', features });
-        setOverlayName(child.group, countedLabel(child.config.label, child.count));
+        child.count = (buckets.get(child.category) || []).length;
       }
-      root.state = 'loaded';
       root.count = (geojson.features || []).length;
       setOverlayName(root.group, countedLabel(root.config.groupTotalLabel || root.config.label, root.count));
+      if (!root.selected || root.selected.size === 0) {
+        root.selected = new Set(root.children.map(child => child.category));
+      }
+      paintFiltered(root);
+      attachNestedControl(root);
+      syncNestedChecks(root);
+      root.state = 'loaded';
+      root.draws = true;
     };
 
     const loadLayerData = async entry => {
       const root = entry.parent || entry;
       if (root.state === 'loaded' || root.state === 'loading') {
+        if (root.geojson && root.config.explodeBy) paintFiltered(root);
         refreshMetrics();
         return;
       }
@@ -250,40 +325,29 @@
             state: 'idle',
             count: Number(layerConfig.feature_count) || 0,
             children: [],
-            draws: false
+            selected: new Set(),
+            draws: true
           };
           entries.push(root);
           const colors = layerConfig.explodeColors || {};
-          const prefix = layerConfig.explodeLabelPrefix || '';
           const counts = layerConfig.explodeCounts || {};
-          const categories = Object.keys(colors);
-          for (const category of categories) {
-            const childConfig = {
-              ...layerConfig,
-              label: `${prefix}${category}`,
-              color: colors[category] || layerConfig.color,
-              fillColor: colors[category] || layerConfig.fillColor || layerConfig.color
-            };
-            const child = {
-              config: childConfig,
-              group: L.layerGroup(),
-              state: 'idle',
-              count: Number(counts[category]),
-              parent: root,
+          for (const category of Object.keys(colors)) {
+            root.children.push({
+              config: {
+                ...layerConfig,
+                label: category,
+                color: colors[category] || layerConfig.color,
+                fillColor: colors[category] || layerConfig.fillColor || layerConfig.color
+              },
               category,
-              draws: true
-            };
-            root.children.push(child);
-            entries.push(child);
+              count: Number(counts[category]) || 0
+            });
           }
           overlayControl.addOverlay(root.group, countedLabel(layerConfig.groupTotalLabel || layerConfig.label, root.count));
-          for (const child of root.children) {
-            overlayControl.addOverlay(child.group, countedLabel(child.config.label, child.count));
-          }
-          if (!root.children.length) root.draws = true;
+          attachNestedControl(root);
           if (layerConfig.defaultVisible) {
-            for (const child of root.children) child.group.addTo(map);
-            if (!root.children.length) root.group.addTo(map);
+            root.selected = new Set(root.children.map(child => child.category));
+            root.group.addTo(map);
           }
         } else {
           const group = L.layerGroup();
@@ -297,32 +361,18 @@
       map.on('overlayadd', event => {
         const entry = entries.find(item => item.group === event.layer);
         if (!entry) { refreshMetrics(); return; }
-        loadLayerData(entry);
-        if (syncingOverlays) return;
-        if (entry.children && entry.children.length) {
-          syncingOverlays = true;
-          for (const child of entry.children) {
-            if (!map.hasLayer(child.group)) child.group.addTo(map);
-          }
-          syncingOverlays = false;
-        } else if (entry.parent) {
-          const allOn = entry.parent.children.every(child => map.hasLayer(child.group));
-          setOverlayChecked(entry.parent.group, allOn);
+        if (entry.children && entry.selected.size === 0) {
+          entry.selected = new Set(entry.children.map(child => child.category));
         }
-        refreshMetrics();
+        loadLayerData(entry);
       });
       map.on('overlayremove', event => {
         const entry = entries.find(item => item.group === event.layer);
-        if (!entry) { refreshMetrics(); return; }
-        if (syncingOverlays) { refreshMetrics(); return; }
-        if (entry.children && entry.children.length) {
-          syncingOverlays = true;
-          for (const child of entry.children) {
-            if (map.hasLayer(child.group)) map.removeLayer(child.group);
-          }
-          syncingOverlays = false;
-        } else if (entry.parent) {
-          setOverlayChecked(entry.parent.group, false);
+        if (entry && entry.children) {
+          entry.selected = new Set();
+          entry.group.clearLayers();
+          entry.visibleCount = 0;
+          syncNestedChecks(entry);
         }
         refreshMetrics();
       });

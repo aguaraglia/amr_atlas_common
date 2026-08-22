@@ -1039,3 +1039,10 @@ textarea { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
 .evidence-page .site-header h1,.outreach-page .site-header h1 { font-size:clamp(1.6rem,2.3vw,2.2rem)!important; line-height:1.08; }
 @media (max-width:760px) { .evidence-page .site-header h1,.outreach-page .site-header h1 { font-size:clamp(1.55rem,6.5vw,1.95rem)!important; } }
 
+
+.layer-group-wrap { display:block; }
+.layer-group-parent { display:flex; align-items:center; gap:.25rem; font-weight:800; }
+.layer-explode-toggle { margin-left:auto; border:0; background:transparent; color:#1d6682; cursor:pointer; font-size:.85rem; line-height:1; padding:.1rem .25rem; }
+.layer-children { margin:.15rem 0 .35rem 1.15rem; display:flex; flex-direction:column; gap:.12rem; }
+.layer-child-row { display:flex; align-items:center; gap:.35rem; font-weight:600; }
+.layer-swatch { width:.65rem; height:.65rem; border-radius:2px; flex:0 0 .65rem; }
