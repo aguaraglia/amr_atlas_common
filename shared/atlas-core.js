@@ -40,6 +40,11 @@
     return labels[field] || field;
   };
 
+  const countedLabel = (label, count) => {
+    const n = Number(count);
+    return Number.isFinite(n) ? `${label} (${n})` : label;
+  };
+
   const geoJsonOptions = layerConfig => ({
     style: feature => ({
       color: layerConfig.color || '#2d7d61',
@@ -107,15 +112,43 @@
     const errors = [];
     const entries = [];
 
+    const overlayNameNode = layer => {
+      const id = L.stamp(layer);
+      const labels = overlayControl.getContainer().querySelectorAll('.leaflet-control-layers-overlays label');
+      for (const label of labels) {
+        const input = label.querySelector('input');
+        if (input && Number(input.layerId) === id) return label.querySelector('span');
+      }
+      return null;
+    };
+
+    const setOverlayName = (layer, name) => {
+      const node = overlayNameNode(layer);
+      if (node) node.innerHTML = ` ${name}`;
+    };
+
+    const insertOverlayHeading = (text, beforeLayer) => {
+      const overlays = overlayControl.getContainer().querySelector('.leaflet-control-layers-overlays');
+      if (!overlays) return null;
+      const heading = document.createElement('div');
+      heading.className = 'layer-group-heading';
+      heading.textContent = text;
+      const nameNode = overlayNameNode(beforeLayer);
+      const target = nameNode && nameNode.closest('label');
+      if (target) overlays.insertBefore(heading, target);
+      else overlays.appendChild(heading);
+      return heading;
+    };
+
     const refreshMetrics = () => {
-      const onMap = entries.filter(item => item.state === 'loaded' && map.hasLayer(item.group));
+      const onMap = entries.filter(item => item.state === 'loaded' && item.draws !== false && map.hasLayer(item.group));
       const total = onMap.reduce((sum, item) => sum + (item.count || 0), 0);
-      const loadedCount = entries.filter(item => item.state === 'loaded').length;
+      const loadedCount = entries.filter(item => item.state === 'loaded' && item.draws !== false).length;
       setText('metric-visible', total.toLocaleString('it-IT'));
       setText('metric-sources', onMap.length.toLocaleString('it-IT'));
       setText('overview-localized', total.toLocaleString('it-IT'));
-      setText('overview-layers', entries.length.toLocaleString('it-IT'));
-      const available = entries.length;
+      setText('overview-layers', entries.filter(item => item.draws !== false).length.toLocaleString('it-IT'));
+      const available = entries.filter(item => item.draws !== false).length;
       if (errors.length) {
         setText('status', `${loadedCount}/${available} layer caricati - ${errors.length} non disponibili`);
       } else if (loadedCount < available) {
@@ -125,22 +158,76 @@
       }
     };
 
+    const paintGeoJson = (entry, geojson) => {
+      const layer = L.geoJSON(geojson, geoJsonOptions(entry.config));
+      entry.group.clearLayers();
+      layer.addTo(entry.group);
+      entry.count = (geojson.features || []).length;
+      entry.state = 'loaded';
+    };
+
+    const populateExploded = (root, geojson) => {
+      const property = root.config.explodeBy;
+      const colors = root.config.explodeColors || {};
+      const prefix = root.config.explodeLabelPrefix || '';
+      const buckets = new Map();
+      for (const feature of geojson.features || []) {
+        const key = String((feature.properties || {})[property] ?? 'Altro');
+        if (!buckets.has(key)) buckets.set(key, []);
+        buckets.get(key).push(feature);
+      }
+      const known = root.children.slice();
+      for (const key of buckets.keys()) {
+        if (!known.some(child => child.category === key)) {
+          const childConfig = {
+            ...root.config,
+            label: `${prefix}${key}`,
+            color: colors[key] || root.config.color,
+            fillColor: colors[key] || root.config.fillColor || root.config.color
+          };
+          const child = {
+            config: childConfig,
+            group: L.layerGroup(),
+            state: 'idle',
+            count: 0,
+            parent: root,
+            category: key,
+            draws: true
+          };
+          root.children.push(child);
+          entries.push(child);
+          overlayControl.addOverlay(child.group, countedLabel(childConfig.label, buckets.get(key).length));
+          if (map.hasLayer(root.group) || root.children.some(item => map.hasLayer(item.group))) {
+            child.group.addTo(map);
+          }
+        }
+      }
+      for (const child of root.children) {
+        const features = buckets.get(child.category) || [];
+        paintGeoJson(child, { type: 'FeatureCollection', features });
+        setOverlayName(child.group, countedLabel(child.config.label, child.count));
+      }
+      root.state = 'loaded';
+      root.count = (geojson.features || []).length;
+      const totalName = countedLabel(root.config.groupTotalLabel || root.config.label, root.count);
+      if (root.heading) root.heading.textContent = totalName;
+    };
+
     const loadLayerData = async entry => {
-      if (entry.state === 'loaded' || entry.state === 'loading') {
+      const root = entry.parent || entry;
+      if (root.state === 'loaded' || root.state === 'loading') {
         refreshMetrics();
         return;
       }
-      entry.state = 'loading';
+      root.state = 'loading';
       try {
-        const geojson = await fetchJson(entry.config.file);
+        const geojson = await fetchJson(root.config.file);
         if (geojson.type !== 'FeatureCollection') throw new Error('non e\' un FeatureCollection');
-        const layer = L.geoJSON(geojson, geoJsonOptions(entry.config));
-        layer.addTo(entry.group);
-        entry.state = 'loaded';
-        entry.count = (geojson.features || []).length;
+        if (root.config.explodeBy) populateExploded(root, geojson);
+        else paintGeoJson(root, geojson);
       } catch (error) {
-        entry.state = 'failed';
-        const message = `${entry.config.id}: ${error.message}`;
+        root.state = 'failed';
+        const message = `${root.config.id}: ${error.message}`;
         errors.push(message);
         console.warn('[AMR Atlas] Skipping layer', message);
       }
@@ -154,13 +241,64 @@
       if (empty) empty.hidden = approvedLayers.length > 0;
 
       for (const layerConfig of approvedLayers) {
-        const group = L.layerGroup();
-        const entry = { config: layerConfig, group, state: 'idle', count: 0 };
-        entries.push(entry);
-        const n = Number(layerConfig.feature_count);
-        const overlayLabel = Number.isFinite(n) ? `${layerConfig.label} (${n})` : layerConfig.label;
-        overlayControl.addOverlay(group, overlayLabel);
-        if (layerConfig.defaultVisible) group.addTo(map);
+        if (layerConfig.explodeBy) {
+          const root = {
+            config: layerConfig,
+            group: L.layerGroup(),
+            state: 'idle',
+            count: Number(layerConfig.feature_count) || 0,
+            children: [],
+            draws: false
+          };
+          entries.push(root);
+          const colors = layerConfig.explodeColors || {};
+          const prefix = layerConfig.explodeLabelPrefix || '';
+          const counts = layerConfig.explodeCounts || {};
+          const categories = Object.keys(colors);
+          for (const category of categories) {
+            const childConfig = {
+              ...layerConfig,
+              label: `${prefix}${category}`,
+              color: colors[category] || layerConfig.color,
+              fillColor: colors[category] || layerConfig.fillColor || layerConfig.color
+            };
+            const child = {
+              config: childConfig,
+              group: L.layerGroup(),
+              state: 'idle',
+              count: Number(counts[category]),
+              parent: root,
+              category,
+              draws: true
+            };
+            root.children.push(child);
+            entries.push(child);
+          }
+          if (root.children.length) {
+            const first = root.children[0];
+            overlayControl.addOverlay(first.group, countedLabel(first.config.label, first.count));
+            root.heading = insertOverlayHeading(
+              countedLabel(layerConfig.groupTotalLabel || layerConfig.label, root.count),
+              first.group
+            );
+            for (const child of root.children.slice(1)) {
+              overlayControl.addOverlay(child.group, countedLabel(child.config.label, child.count));
+            }
+          } else {
+            overlayControl.addOverlay(root.group, countedLabel(layerConfig.groupTotalLabel || layerConfig.label, root.count));
+            root.draws = true;
+          }
+          if (layerConfig.defaultVisible) {
+            for (const child of root.children) child.group.addTo(map);
+            if (!root.children.length) root.group.addTo(map);
+          }
+        } else {
+          const group = L.layerGroup();
+          const entry = { config: layerConfig, group, state: 'idle', count: Number(layerConfig.feature_count) || 0, draws: true };
+          entries.push(entry);
+          overlayControl.addOverlay(group, countedLabel(layerConfig.label, layerConfig.feature_count));
+          if (layerConfig.defaultVisible) group.addTo(map);
+        }
       }
 
       map.on('overlayadd', event => {

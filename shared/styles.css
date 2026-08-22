@@ -1034,7 +1034,7 @@ textarea { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
 /* Compact island icon: transparent square asset, cropped visually without distortion. */
 .global-brand .brand-mark-sardinia { width:31px; height:43px; flex:0 0 31px; display:flex; align-items:center; justify-content:center; overflow:hidden; transform:none; }
 .global-brand .brand-mark-sardinia img { display:block; width:46px; height:46px; object-fit:contain; object-position:center; filter:brightness(0) saturate(100%) invert(24%) sepia(63%) saturate(1480%) hue-rotate(180deg) brightness(87%) contrast(99%); }
-.atlas-brand .brand-mark-sardinia img { filter:brightness(0) saturate(100%) invert(76%) sepia(30%) saturate(870%) hue-rotate(145deg) brightness(92%) contrast(91%); }
+.atlas-brand .brand-mark-sardinia img { filter:brightness(0) saturate(100%) invert(24%) sepia(63%) saturate(1480%) hue-rotate(180deg) brightness(87%) contrast(99%); }
 /* Secondary page titles stay subordinate to the Atlas title. */
 .evidence-page .site-header h1,.outreach-page .site-header h1 { font-size:clamp(1.6rem,2.3vw,2.2rem)!important; line-height:1.08; }
 @media (max-width:760px) { .evidence-page .site-header h1,.outreach-page .site-header h1 { font-size:clamp(1.55rem,6.5vw,1.95rem)!important; } }
