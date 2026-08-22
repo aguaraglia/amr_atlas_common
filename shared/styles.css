@@ -147,7 +147,7 @@ footer { display: flex; justify-content: space-between; gap: 1rem; padding: .75r
 .leaflet-control-layers, .leaflet-popup-content-wrapper { border-radius: 10px; }
 .leaflet-control-layers { border: 1px solid #d7e3dd !important; box-shadow: 0 8px 24px #17352c24 !important; font-size: .78rem; }
 .leaflet-control-layers label { line-height: 1.35; margin: .18rem 0; }
-.layer-group-label { font-weight: 700; color: #244f68; }
+.layer-group-label { font-weight: 400; color: #244f68; }
 .layer-swatch { display: inline-block; width: .62rem; height: .62rem; margin: 0 .35rem 0 .1rem; border-radius: 999px; vertical-align: -1px; box-shadow: 0 0 0 1px #ffffff, 0 0 0 2px #0000001f; }
 @media (max-width: 700px) { .site-header, footer { align-items: flex-start; flex-direction: column; } #map { min-height: 470px; } }
 @media (max-width: 760px) { .site-nav { gap: .85rem; padding-inline: 1rem; overflow-x: auto; } .site-header { padding-inline: 1rem; } .evidence-heading { display: block; } .tag-list { justify-content: flex-start; margin-top: 1rem; } .evidence-layout, .directory-layout { grid-template-columns: 1fr; gap: 1.2rem; } .fact-list div { grid-template-columns: 1fr; gap: .2rem; } .metric-grid { grid-template-columns: 1fr; } .evidence-shell { padding-inline: 1rem; } }
@@ -1040,9 +1040,8 @@ textarea { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
 @media (max-width:760px) { .evidence-page .site-header h1,.outreach-page .site-header h1 { font-size:clamp(1.55rem,6.5vw,1.95rem)!important; } }
 
 
-.layer-group-wrap { display:block; }
-.layer-group-parent { display:flex; align-items:center; gap:.25rem; font-weight:800; }
+.layer-group-parent { font-weight:400; }
 .layer-explode-toggle { margin-left:auto; border:0; background:transparent; color:#1d6682; cursor:pointer; font-size:.85rem; line-height:1; padding:.1rem .25rem; }
 .layer-children { margin:.15rem 0 .35rem 1.15rem; display:flex; flex-direction:column; gap:.12rem; }
-.layer-child-row { display:flex; align-items:center; gap:.35rem; font-weight:600; }
+.layer-child-row { display:flex; align-items:center; gap:.35rem; font-weight:400; }
 .layer-swatch { width:.65rem; height:.65rem; border-radius:2px; flex:0 0 .65rem; }

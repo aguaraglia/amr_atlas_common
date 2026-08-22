@@ -208,30 +208,33 @@
     const attachNestedControl = (root) => {
       const nameNode = overlayNameNode(root.group);
       const label = nameNode && nameNode.closest('label');
-      if (!label || label.dataset.nested === '1') return;
+      if (!label) return;
+      const overlays = label.parentNode;
+      if (label.dataset.nested === '1' && root.kidsEl && overlays.contains(root.kidsEl)) return;
+      if (root.kidsEl && root.kidsEl.parentNode) root.kidsEl.remove();
+      if (root.toggleEl && root.toggleEl.parentNode) root.toggleEl.remove();
       label.dataset.nested = '1';
       label.classList.add('layer-group-parent');
-      const wrap = document.createElement('div');
-      wrap.className = 'layer-group-wrap';
-      label.parentNode.insertBefore(wrap, label);
-      wrap.appendChild(label);
       const toggle = document.createElement('button');
       toggle.type = 'button';
       toggle.className = 'layer-explode-toggle';
       toggle.setAttribute('aria-expanded', 'false');
       toggle.title = 'Mostra le categorie';
       toggle.textContent = '\u25b8';
-      label.appendChild(toggle);
       const kids = document.createElement('div');
       kids.className = 'layer-children';
       kids.hidden = true;
-      wrap.appendChild(kids);
+      label.insertAdjacentElement('afterend', toggle);
+      toggle.insertAdjacentElement('afterend', kids);
+      root.toggleEl = toggle;
+      root.kidsEl = kids;
       root.childBox = new Map();
       for (const child of root.children) {
         const row = document.createElement('label');
         row.className = 'layer-child-row';
         const input = document.createElement('input');
         input.type = 'checkbox';
+        input.addEventListener('mousedown', event => event.stopPropagation());
         input.addEventListener('click', event => event.stopPropagation());
         input.addEventListener('change', event => {
           event.stopPropagation();
@@ -245,6 +248,7 @@
             paintFiltered(root);
           }
           syncNestedChecks(root);
+          attachNestedControl(root);
           refreshMetrics();
         });
         const swatch = document.createElement('span');
@@ -256,6 +260,7 @@
         kids.appendChild(row);
         root.childBox.set(child.category, input);
       }
+      toggle.addEventListener('mousedown', event => event.stopPropagation());
       toggle.addEventListener('click', event => {
         event.preventDefault();
         event.stopPropagation();
@@ -364,7 +369,9 @@
         if (entry.children && entry.selected.size === 0) {
           entry.selected = new Set(entry.children.map(child => child.category));
         }
-        loadLayerData(entry);
+        loadLayerData(entry).then(() => {
+          if (entry.children) attachNestedControl(entry);
+        });
       });
       map.on('overlayremove', event => {
         const entry = entries.find(item => item.group === event.layer);
@@ -373,6 +380,7 @@
           entry.group.clearLayers();
           entry.visibleCount = 0;
           syncNestedChecks(entry);
+          attachNestedControl(entry);
         }
         refreshMetrics();
       });
