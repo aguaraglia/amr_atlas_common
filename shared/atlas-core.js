@@ -210,20 +210,13 @@
       if (!overlays || root.ui) return;
       const box = document.createElement('div');
       box.className = 'custom-layer-group';
-      const head = document.createElement('label');
+      const head = document.createElement('div');
       head.className = 'custom-layer-head';
-      const all = document.createElement('input');
-      all.type = 'checkbox';
       const headText = document.createElement('span');
-      headText.textContent = ' ' + countedLabel(root.config.groupTotalLabel || root.config.label, root.count);
-      head.appendChild(all);
+      headText.textContent = countedLabel(root.config.groupTotalLabel || root.config.label, root.count);
       head.appendChild(headText);
-      const details = document.createElement('details');
-      details.className = 'custom-layer-details';
-      details.open = true;
-      const summary = document.createElement('summary');
-      summary.textContent = 'Categorie';
-      details.appendChild(summary);
+      const list = document.createElement('div');
+      list.className = 'custom-layer-list';
       root.childBox = new Map();
       for (const child of root.children) {
         const row = document.createElement('label');
@@ -238,13 +231,13 @@
         row.appendChild(input);
         row.appendChild(swatch);
         row.appendChild(text);
-        details.appendChild(row);
+        list.appendChild(row);
         root.childBox.set(child.category, { input: input, text: text });
       }
       box.appendChild(head);
-      box.appendChild(details);
+      box.appendChild(list);
       overlays.appendChild(box);
-      root.ui = { box: box, all: all, headText: headText, details: details };
+      root.ui = { box: box, headText: headText };
       L.DomEvent.disableClickPropagation(box);
       L.DomEvent.disableScrollPropagation(box);
 
@@ -265,10 +258,6 @@
         refreshMetrics();
       };
 
-      all.addEventListener('change', () => {
-        root.selected = all.checked ? new Set(root.children.map(child => child.category)) : new Set();
-        applySelection();
-      });
       for (const child of root.children) {
         root.childBox.get(child.category).input.addEventListener('change', (event) => {
           if (event.target.checked) root.selected.add(child.category);
@@ -280,11 +269,7 @@
 
     const syncCustomGroup = (root) => {
       if (!root.ui) return;
-      const total = root.children.length;
-      const on = root.selected.size;
-      root.ui.all.indeterminate = on > 0 && on < total;
-      root.ui.all.checked = on === total && on > 0;
-      root.ui.headText.textContent = ' ' + countedLabel(root.config.groupTotalLabel || root.config.label, root.count);
+      root.ui.headText.textContent = countedLabel(root.config.groupTotalLabel || root.config.label, root.count);
       if (root.childBox) {
         for (const child of root.children) {
           const row = root.childBox.get(child.category);
