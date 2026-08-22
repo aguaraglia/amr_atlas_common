@@ -40,7 +40,7 @@
       const haystack = [item.title, item.authors, item.journal, item.geographic_link].join(' ').toLocaleLowerCase('it');
       return (!query || haystack.includes(query)) && (scope === 'ALL' || item.scope === scope);
     });
-    literatureSummary.textContent = `${filtered.length} di ${literatureRecords.length} articoli con collegamento territoriale esplicito alla Lombardia.`;
+    literatureSummary.textContent = `${filtered.length} di ${literatureRecords.length} articoli con collegamento territoriale esplicito a ${cfg.regionName || 'questa regione'}.`;
     literatureRows.innerHTML = filtered.map(item => `<tr><td>${esc(item.year)}</td><td>${item.source_url ? `<strong><a href="${esc(item.source_url)}" target="_blank" rel="noreferrer">${esc(item.title)}</a></strong>` : `<strong>${esc(item.title)}</strong>`}<br><small>${esc(item.authors || '')}${item.doi ? ` · DOI ${esc(item.doi)}` : ''}</small></td><td>${esc(item.journal)}</td><td>${esc(labels[item.scope] || item.scope || 'Studio')}</td><td>${esc(item.geographic_link || '')}</td><td><a href="${esc(item.source_url)}" target="_blank" rel="noreferrer">PubMed ↗</a></td></tr>`).join('') || '<tr><td colspan="6">Nessun articolo corrisponde ai filtri.</td></tr>';
   };
 

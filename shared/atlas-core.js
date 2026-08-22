@@ -64,7 +64,7 @@
     }
   });
 
-  document.title = `${config.title} — AMR Atlas`;
+  document.title = `${config.title} - AMR Atlas`;
   setText('atlas-region-name', config.regionName);
   setText('atlas-title', config.title);
   setText('atlas-short-name', config.shortName);
@@ -78,10 +78,10 @@
       const approved = publicRecords(catalog);
       const candidates = (catalog.records || []).filter(item => item.publication_status !== 'public_approved');
       const approvedHtml = approved.length
-        ? approved.map(record => `<article class="directory-row"><span><strong>${escapeHtml(record.title)}</strong><small>${escapeHtml(record.period || 'Periodo non indicato')} — ${escapeHtml(record.geography || config.regionName)}</small></span><span>${escapeHtml(record.evidence_type || 'evidenza')}</span></article>`).join('')
-        : '<p class="empty-filter">Nessun dataset AMR lombardo e\' ancora approvato per la pubblicazione.</p>';
+        ? approved.map(record => `<article class="directory-row"><span><strong>${escapeHtml(record.title)}</strong><small>${escapeHtml(record.period || 'Periodo non indicato')} - ${escapeHtml(record.geography || config.regionName)}</small></span><span>${escapeHtml(record.evidence_type || 'evidenza')}</span></article>`).join('')
+        : '<p class="empty-filter">Nessun dataset AMR regionale e\' ancora approvato per la pubblicazione.</p>';
       const candidateHtml = candidates.length
-        ? candidates.map(record => `<article class="directory-row"><span><strong>${escapeHtml(record.title)}</strong><small>${escapeHtml(record.publisher || '')}</small></span><span>non pubblicato — ${escapeHtml(record.publication_status)}</span></article>`).join('')
+        ? candidates.map(record => `<article class="directory-row"><span><strong>${escapeHtml(record.title)}</strong><small>${escapeHtml(record.publisher || '')}</small></span><span>non pubblicato - ${escapeHtml(record.publication_status)}</span></article>`).join('')
         : '<p class="empty-filter">Nessuna fonte candidata registrata.</p>';
       root.innerHTML = `<div class="directory-layout"><section><h2>Evidenze pubbliche</h2><div class="directory-list">${approvedHtml}</div></section><section><h2>Registro di preparazione</h2><p>Le voci seguenti sono piste di lavoro e non dati dell\'atlante.</p><div class="directory-list">${candidateHtml}</div></section></div>`;
     } catch (error) {
@@ -104,28 +104,32 @@
     });
 
     const overlayControl = L.control.layers({ OpenStreetMap: osm, Satellite: satellite }, {}, { collapsed: false }).addTo(map);
-    const loaded = [];
     const errors = [];
     const entries = [];
 
     const refreshMetrics = () => {
-      const total = loaded.reduce((sum, item) => sum + item.count, 0);
+      const onMap = entries.filter(item => item.state === 'loaded' && map.hasLayer(item.group));
+      const total = onMap.reduce((sum, item) => sum + (item.count || 0), 0);
+      const loadedCount = entries.filter(item => item.state === 'loaded').length;
       setText('metric-visible', total.toLocaleString('it-IT'));
-      setText('metric-sources', loaded.length.toLocaleString('it-IT'));
+      setText('metric-sources', onMap.length.toLocaleString('it-IT'));
       setText('overview-localized', total.toLocaleString('it-IT'));
-      setText('overview-layers', loaded.length.toLocaleString('it-IT'));
+      setText('overview-layers', entries.length.toLocaleString('it-IT'));
       const available = entries.length;
       if (errors.length) {
-        setText('status', `${loaded.length}/${available} layer caricati — ${errors.length} non disponibili`);
-      } else if (loaded.length < available) {
-        setText('status', `${loaded.length}/${available} layer pubblici caricati (altri su richiesta)`);
+        setText('status', `${loadedCount}/${available} layer caricati - ${errors.length} non disponibili`);
+      } else if (loadedCount < available) {
+        setText('status', `${onMap.length}/${available} layer visibili (altri su richiesta)`);
       } else {
-        setText('status', `${loaded.length} layer pubblici caricati`);
+        setText('status', `${onMap.length} layer pubblici visibili`);
       }
     };
 
     const loadLayerData = async entry => {
-      if (entry.state === 'loaded' || entry.state === 'loading') return;
+      if (entry.state === 'loaded' || entry.state === 'loading') {
+        refreshMetrics();
+        return;
+      }
       entry.state = 'loading';
       try {
         const geojson = await fetchJson(entry.config.file);
@@ -133,7 +137,7 @@
         const layer = L.geoJSON(geojson, geoJsonOptions(entry.config));
         layer.addTo(entry.group);
         entry.state = 'loaded';
-        loaded.push({ config: entry.config, layer, count: (geojson.features || []).length });
+        entry.count = (geojson.features || []).length;
       } catch (error) {
         entry.state = 'failed';
         const message = `${entry.config.id}: ${error.message}`;
@@ -151,7 +155,7 @@
 
       for (const layerConfig of approvedLayers) {
         const group = L.layerGroup();
-        const entry = { config: layerConfig, group, state: 'idle' };
+        const entry = { config: layerConfig, group, state: 'idle', count: 0 };
         entries.push(entry);
         overlayControl.addOverlay(group, layerConfig.label);
         if (layerConfig.defaultVisible) group.addTo(map);
@@ -160,7 +164,9 @@
       map.on('overlayadd', event => {
         const entry = entries.find(item => item.group === event.layer);
         if (entry) loadLayerData(entry);
+        else refreshMetrics();
       });
+      map.on('overlayremove', () => refreshMetrics());
 
       for (const entry of entries) {
         if (entry.config.defaultVisible) await loadLayerData(entry);
@@ -173,15 +179,26 @@
     }
   }
 
+  async function renderOverviewLiterature() {
+    const literaturePath = config.catalogs && config.catalogs.literature;
+    if (!literaturePath) return;
+    try {
+      const catalog = await fetchJson(literaturePath);
+      const records = Array.isArray(catalog.records) ? catalog.records : [];
+      setText('overview-evidence', records.length.toLocaleString('it-IT'));
+    } catch (error) {
+      console.warn('[AMR Atlas] Literature catalog failed', error);
+    }
+  }
+
   async function renderDashboardEvidence() {
     const root = document.getElementById('dashboard-evidence');
     if (!root) return;
     try {
       const catalog = await fetchJson(config.catalogs.evidence);
       const approved = publicRecords(catalog);
-      setText('overview-evidence', approved.length.toLocaleString('it-IT'));
       root.innerHTML = approved.length
-        ? approved.map(record => `<article class="evidence-card"><strong>${escapeHtml(record.title)}</strong><br><small>${escapeHtml(record.period || '')} — ${escapeHtml(record.geography || config.regionName)}</small><p>${escapeHtml(record.summary || '')}</p></article>`).join('')
+        ? approved.map(record => `<article class="evidence-card"><strong>${escapeHtml(record.title)}</strong><br><small>${escapeHtml(record.period || '')} - ${escapeHtml(record.geography || config.regionName)}</small><p>${escapeHtml(record.summary || '')}</p></article>`).join('')
         : '<div class="evidence-card"><strong>Dati in preparazione</strong><p>Nessuna evidenza regionale e\' pubblicata finche\' fonte, licenza, granularita\' e limiti non risultano verificati.</p></div>';
     } catch (error) {
       root.innerHTML = `<div class="evidence-card"><strong>Catalogo non disponibile</strong><p>${escapeHtml(error.message)}</p></div>`;
@@ -189,6 +206,7 @@
   }
 
   renderEvidenceDirectory();
+  renderOverviewLiterature();
   renderDashboardEvidence();
   initMap();
 })();
