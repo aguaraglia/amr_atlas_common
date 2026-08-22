@@ -54,7 +54,11 @@ main { max-width: 1500px; margin: 0 auto; padding: 0 1rem 1rem; }
 .literature-section { margin-top: 1rem; padding: 1.05rem; border: 1px solid #d7e3dd; border-radius: 14px; background: #fff; box-shadow: 0 12px 32px #17352c12; }
 .literature-section h2 { margin: 0; font-size: 1.05rem; color: #123b35; letter-spacing: -.01em; }
 .literature-section p { margin: .35rem 0 .9rem; max-width: 880px; color: #60776e; font-size: .87rem; line-height: 1.45; }
-.table-wrap { max-height: 360px; overflow: auto; border: 1px solid #dbe7df; border-radius: 10px; background: #fff; }
+.table-wrap { max-height: 360px; overflow: auto; border: 1px solid #dbe7df; border-radius: 10px; background: #fff; scrollbar-gutter: stable; scrollbar-width: auto; scrollbar-color: #3d6f8c #e4edf3; }
+.table-wrap::-webkit-scrollbar { width: 14px; height: 14px; }
+.table-wrap::-webkit-scrollbar-track { background: #e4edf3; }
+.table-wrap::-webkit-scrollbar-thumb { background: #3d6f8c; border-radius: 8px; border: 2px solid #e4edf3; }
+.evidence-page .table-wrap { max-height: none; overflow-x: auto; overflow-y: visible; }
 .literature-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: .78rem; background: #fff; }
 .literature-table th, .literature-table td { padding: .55rem .65rem; text-align: left; vertical-align: top; border-bottom: 1px solid #e7efe9; }
 .literature-table th { position: sticky; top: 0; background: #f1f6f3; color: #31574e; font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
