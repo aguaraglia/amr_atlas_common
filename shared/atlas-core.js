@@ -127,18 +127,21 @@
       if (node) node.innerHTML = ` ${name}`;
     };
 
-    const insertOverlayHeading = (text, beforeLayer) => {
-      const overlays = overlayControl.getContainer().querySelector('.leaflet-control-layers-overlays');
-      if (!overlays) return null;
-      const heading = document.createElement('div');
-      heading.className = 'layer-group-heading';
-      heading.textContent = text;
-      const nameNode = overlayNameNode(beforeLayer);
-      const target = nameNode && nameNode.closest('label');
-      if (target) overlays.insertBefore(heading, target);
-      else overlays.appendChild(heading);
-      return heading;
+    const overlayInput = layer => {
+      const id = L.stamp(layer);
+      const inputs = overlayControl.getContainer().querySelectorAll('.leaflet-control-layers-overlays input');
+      for (const input of inputs) {
+        if (Number(input.layerId) === id) return input;
+      }
+      return null;
     };
+
+    const setOverlayChecked = (layer, checked) => {
+      const input = overlayInput(layer);
+      if (input) input.checked = !!checked;
+    };
+
+    let syncingOverlays = false;
 
     const refreshMetrics = () => {
       const onMap = entries.filter(item => item.state === 'loaded' && item.draws !== false && map.hasLayer(item.group));
@@ -209,8 +212,7 @@
       }
       root.state = 'loaded';
       root.count = (geojson.features || []).length;
-      const totalName = countedLabel(root.config.groupTotalLabel || root.config.label, root.count);
-      if (root.heading) root.heading.textContent = totalName;
+      setOverlayName(root.group, countedLabel(root.config.groupTotalLabel || root.config.label, root.count));
     };
 
     const loadLayerData = async entry => {
@@ -274,20 +276,11 @@
             root.children.push(child);
             entries.push(child);
           }
-          if (root.children.length) {
-            const first = root.children[0];
-            overlayControl.addOverlay(first.group, countedLabel(first.config.label, first.count));
-            root.heading = insertOverlayHeading(
-              countedLabel(layerConfig.groupTotalLabel || layerConfig.label, root.count),
-              first.group
-            );
-            for (const child of root.children.slice(1)) {
-              overlayControl.addOverlay(child.group, countedLabel(child.config.label, child.count));
-            }
-          } else {
-            overlayControl.addOverlay(root.group, countedLabel(layerConfig.groupTotalLabel || layerConfig.label, root.count));
-            root.draws = true;
+          overlayControl.addOverlay(root.group, countedLabel(layerConfig.groupTotalLabel || layerConfig.label, root.count));
+          for (const child of root.children) {
+            overlayControl.addOverlay(child.group, countedLabel(child.config.label, child.count));
           }
+          if (!root.children.length) root.draws = true;
           if (layerConfig.defaultVisible) {
             for (const child of root.children) child.group.addTo(map);
             if (!root.children.length) root.group.addTo(map);
@@ -303,10 +296,36 @@
 
       map.on('overlayadd', event => {
         const entry = entries.find(item => item.group === event.layer);
-        if (entry) loadLayerData(entry);
-        else refreshMetrics();
+        if (!entry) { refreshMetrics(); return; }
+        loadLayerData(entry);
+        if (syncingOverlays) return;
+        if (entry.children && entry.children.length) {
+          syncingOverlays = true;
+          for (const child of entry.children) {
+            if (!map.hasLayer(child.group)) child.group.addTo(map);
+          }
+          syncingOverlays = false;
+        } else if (entry.parent) {
+          const allOn = entry.parent.children.every(child => map.hasLayer(child.group));
+          setOverlayChecked(entry.parent.group, allOn);
+        }
+        refreshMetrics();
       });
-      map.on('overlayremove', () => refreshMetrics());
+      map.on('overlayremove', event => {
+        const entry = entries.find(item => item.group === event.layer);
+        if (!entry) { refreshMetrics(); return; }
+        if (syncingOverlays) { refreshMetrics(); return; }
+        if (entry.children && entry.children.length) {
+          syncingOverlays = true;
+          for (const child of entry.children) {
+            if (map.hasLayer(child.group)) map.removeLayer(child.group);
+          }
+          syncingOverlays = false;
+        } else if (entry.parent) {
+          setOverlayChecked(entry.parent.group, false);
+        }
+        refreshMetrics();
+      });
 
       for (const entry of entries) {
         if (entry.config.defaultVisible) await loadLayerData(entry);
