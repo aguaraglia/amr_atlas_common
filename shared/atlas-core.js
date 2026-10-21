@@ -2,14 +2,28 @@
   'use strict';
 
   const config = window.AMR_ATLAS_CONFIG;
-  if (!config) {
-    document.body.innerHTML = '<main><h1>Configurazione mancante</h1><p>Impossibile avviare l\'atlante.</p></main>';
-    return;
-  }
 
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[char]));
+
+  const t = (key, vars) => (window.amrT ? window.amrT(key, vars) : key);
+  const assetUrl = path => (window.amrAsset ? window.amrAsset(path) : path);
+  const locale = () => (window.amrLocale ? window.amrLocale() : 'it-IT');
+  const layerLabel = layerConfig => {
+    if (window.amrLang && window.amrLang() === 'en' && layerConfig && layerConfig.label_en) return layerConfig.label_en;
+    return layerConfig ? layerConfig.label : '';
+  };
+  const applyBrand = () => {
+    if (!config.brandIcon) return;
+    const value = 'url("' + String(assetUrl(config.brandIcon)).replace(/"/g, '%22') + '")';
+    document.querySelectorAll('.brand-code-icon').forEach(node => node.style.setProperty('--brand-icon', value));
+  };
+
+  if (!config) {
+    document.body.innerHTML = `<main><h1>${escapeHtml(t('error.missingConfigTitle'))}</h1><p>${escapeHtml(t('error.missingConfigBody'))}</p></main>`;
+    return;
+  }
 
   const setText = (id, value) => {
     const node = document.getElementById(id);
@@ -17,7 +31,7 @@
   };
 
   const fetchJson = async path => {
-    const response = await fetch(path, { cache: 'no-store' });
+    const response = await fetch(assetUrl(path), { cache: 'no-store' });
     if (!response.ok) throw new Error(`${path}: HTTP ${response.status}`);
     return response.json();
   };
@@ -36,7 +50,8 @@
   };
 
   const popupLabel = (field, layerConfig) => {
-    const labels = layerConfig.popupLabels || {};
+    const english = window.amrLang && window.amrLang() === 'en' ? layerConfig.popupLabels_en : null;
+    const labels = english || layerConfig.popupLabels || {};
     return labels[field] || field;
   };
 
@@ -70,11 +85,12 @@
       const rows = fields.filter(field => props[field] !== undefined && props[field] !== null)
         .map(field => `<div><strong>${escapeHtml(popupLabel(field, layerConfig))}</strong><br>${escapeHtml(props[field])}</div>`)
         .join('');
-      featureLayer.bindPopup(`<div class="map-popup"><h3>${escapeHtml(props[layerConfig.labelProperty] || layerConfig.label)}</h3>${rows || '<p>Nessun dettaglio pubblico aggiuntivo.</p>'}</div>`);
+      featureLayer.bindPopup(`<div class="map-popup"><h3>${escapeHtml(props[layerConfig.labelProperty] || layerLabel(layerConfig))}</h3>${rows || `<p>${escapeHtml(t('popup.noDetail'))}</p>`}</div>`);
     }
   });
 
-  document.title = `${config.title} - AMR Atlas`;
+  document.title = `${config.title} - ${t('meta.titleSuffix')}`;
+  applyBrand();
   setText('atlas-region-name', config.regionName);
   setText('atlas-title', config.title);
   setText('atlas-short-name', config.shortName);
@@ -88,14 +104,14 @@
       const approved = publicRecords(catalog);
       const candidates = (catalog.records || []).filter(item => item.publication_status !== 'public_approved');
       const approvedHtml = approved.length
-        ? approved.map(record => `<article class="directory-row"><span><strong>${escapeHtml(record.title)}</strong><small>${escapeHtml(record.period || 'Periodo non indicato')} - ${escapeHtml(record.geography || config.regionName)}</small></span><span>${escapeHtml(record.evidence_type || 'evidenza')}</span></article>`).join('')
-        : '<p class="empty-filter">Nessun dataset AMR regionale e\' ancora approvato per la pubblicazione.</p>';
+        ? approved.map(record => `<article class="directory-row"><span><strong>${escapeHtml(record.title)}</strong><small>${escapeHtml(record.period || t('evidence.periodUnknown'))} - ${escapeHtml(record.geography || config.regionName)}</small></span><span>${escapeHtml(record.evidence_type || t('evidence.typeFallback'))}</span></article>`).join('')
+        : `<p class="empty-filter">${escapeHtml(t('evidence.noneApproved'))}</p>`;
       const candidateHtml = candidates.length
-        ? candidates.map(record => `<article class="directory-row"><span><strong>${escapeHtml(record.title)}</strong><small>${escapeHtml(record.publisher || '')}</small></span><span>non pubblicato - ${escapeHtml(record.publication_status)}</span></article>`).join('')
-        : '<p class="empty-filter">Nessuna fonte candidata registrata.</p>';
-      root.innerHTML = `<div class="directory-layout"><section><h2>Evidenze pubbliche</h2><div class="directory-list">${approvedHtml}</div></section><section><h2>Registro di preparazione</h2><p>Le voci seguenti sono piste di lavoro e non dati dell\'atlante.</p><div class="directory-list">${candidateHtml}</div></section></div>`;
+        ? candidates.map(record => `<article class="directory-row"><span><strong>${escapeHtml(record.title)}</strong><small>${escapeHtml(record.publisher || '')}</small></span><span>${escapeHtml(t('evidence.notPublished'))} - ${escapeHtml(record.publication_status)}</span></article>`).join('')
+        : `<p class="empty-filter">${escapeHtml(t('evidence.noCandidates'))}</p>`;
+      root.innerHTML = `<div class="directory-layout"><section><h2>${escapeHtml(t('evidence.publicTitle'))}</h2><div class="directory-list">${approvedHtml}</div></section><section><h2>${escapeHtml(t('evidence.prepTitle'))}</h2><p>${escapeHtml(t('evidence.prepNote'))}</p><div class="directory-list">${candidateHtml}</div></section></div>`;
     } catch (error) {
-      root.innerHTML = `<p class="empty-filter">Catalogo non disponibile: ${escapeHtml(error.message)}</p>`;
+      root.innerHTML = `<p class="empty-filter">${escapeHtml(t('evidence.catalogUnavailable', { message: error.message }))}</p>`;
     }
   }
 
@@ -113,7 +129,10 @@
       attribution: 'Tiles &copy; Esri'
     });
 
-    const overlayControl = L.control.layers({ OpenStreetMap: osm, Satellite: satellite }, {}, { collapsed: false }).addTo(map);
+    const baseLayers = {};
+    baseLayers[t('map.osm')] = osm;
+    baseLayers[t('map.satellite')] = satellite;
+    const overlayControl = L.control.layers(baseLayers, {}, { collapsed: false }).addTo(map);
     const errors = [];
     const entries = [];
 
@@ -152,17 +171,17 @@
       const onMap = entries.filter(item => item.state === 'loaded' && item.draws !== false && map.hasLayer(item.group));
       const total = onMap.reduce((sum, item) => sum + ((item.visibleCount ?? item.count) || 0), 0);
       const loadedCount = entries.filter(item => item.state === 'loaded' && item.draws !== false).length;
-      setText('metric-visible', total.toLocaleString('it-IT'));
-      setText('metric-sources', onMap.length.toLocaleString('it-IT'));
-      setText('overview-localized', total.toLocaleString('it-IT'));
-      setText('overview-layers', entries.filter(item => item.draws !== false).length.toLocaleString('it-IT'));
+      setText('metric-visible', total.toLocaleString(locale()));
+      setText('metric-sources', onMap.length.toLocaleString(locale()));
+      setText('overview-localized', total.toLocaleString(locale()));
+      setText('overview-layers', entries.filter(item => item.draws !== false).length.toLocaleString(locale()));
       const available = entries.filter(item => item.draws !== false).length;
       if (errors.length) {
-        setText('status', `${loadedCount}/${available} layer caricati - ${errors.length} non disponibili`);
+        setText('status', t('status.layersFailed', { loaded: loadedCount, available: available, errors: errors.length }));
       } else if (loadedCount < available) {
-        setText('status', `${onMap.length}/${available} layer visibili (altri su richiesta)`);
+        setText('status', t('status.layersOnDemand', { visible: onMap.length, available: available }));
       } else {
-        setText('status', `${onMap.length} layer pubblici visibili`);
+        setText('status', t('status.layersVisible', { visible: onMap.length }));
       }
     };
 
@@ -183,7 +202,7 @@
       }
       const property = root.config.explodeBy;
       const features = (root.geojson.features || []).filter(feature => (
-        root.selected.has(String((feature.properties || {})[property] ?? 'Altro'))
+        root.selected.has(String((feature.properties || {})[property] ?? t('layer.other')))
       ));
       L.geoJSON({ type: 'FeatureCollection', features }, geoJsonOptions(root.config)).addTo(root.group);
       root.visibleCount = features.length;
@@ -289,7 +308,7 @@
       const property = root.config.explodeBy;
       const buckets = new Map();
       for (const feature of geojson.features || []) {
-        const key = String((feature.properties || {})[property] ?? 'Altro');
+        const key = String((feature.properties || {})[property] ?? t('layer.other'));
         if (!buckets.has(key)) buckets.set(key, []);
         buckets.get(key).push(feature);
       }
@@ -317,7 +336,7 @@
       root.state = 'loading';
       try {
         const geojson = await fetchJson(root.config.file);
-        if (geojson.type !== 'FeatureCollection') throw new Error('non e un FeatureCollection');
+        if (geojson.type !== 'FeatureCollection') throw new Error(t('error.notFeatureCollection'));
         if (root.config.explodeBy) populateExploded(root, geojson);
         else paintGeoJson(root, geojson);
       } catch (error) {
@@ -411,7 +430,7 @@
     try {
       const catalog = await fetchJson(literaturePath);
       const records = Array.isArray(catalog.records) ? catalog.records : [];
-      setText('overview-evidence', records.length.toLocaleString('it-IT'));
+      setText('overview-evidence', records.length.toLocaleString(locale()));
     } catch (error) {
       console.warn('[AMR Atlas] Literature catalog failed', error);
     }
@@ -425,9 +444,9 @@
       const approved = publicRecords(catalog);
       root.innerHTML = approved.length
         ? approved.map(record => `<article class="evidence-card"><strong>${escapeHtml(record.title)}</strong><br><small>${escapeHtml(record.period || '')} - ${escapeHtml(record.geography || config.regionName)}</small><p>${escapeHtml(record.summary || '')}</p></article>`).join('')
-        : '<div class="evidence-card"><strong>Dati in preparazione</strong><p>Nessuna evidenza regionale e\' pubblicata finche\' fonte, licenza, granularita\' e limiti non risultano verificati.</p></div>';
+        : `<div class="evidence-card"><strong>${escapeHtml(t('dashboard.preparingTitle'))}</strong><p>${escapeHtml(t('dashboard.preparingBody'))}</p></div>`;
     } catch (error) {
-      root.innerHTML = `<div class="evidence-card"><strong>Catalogo non disponibile</strong><p>${escapeHtml(error.message)}</p></div>`;
+      root.innerHTML = `<div class="evidence-card"><strong>${escapeHtml(t('dashboard.catalogTitle'))}</strong><p>${escapeHtml(error.message)}</p></div>`;
     }
   }
 

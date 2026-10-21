@@ -1,67 +1,71 @@
 <!doctype html>
-<html lang="it">
+<html lang="{{LANG}}" data-asset-base="{{ASSET_BASE}}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="amr-atlas-common {{ENGINE_VERSION}}">
   <title>{{TITLE}}</title>
+  <link rel="alternate" hreflang="it" href="{{IT_HREF}}">
+  <link rel="alternate" hreflang="en" href="{{EN_HREF}}">
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="assets/styles.css?v=0.5.11">
-  <link rel="stylesheet" href="assets/regional-base.css">
+  <link rel="stylesheet" href="{{ASSET_BASE}}assets/styles.css?v={{ENGINE_VERSION}}">
+  <link rel="stylesheet" href="{{ASSET_BASE}}assets/regional-base.css?v={{ENGINE_VERSION}}">
 </head>
 <body class="atlas-dashboard">
   <header class="global-site-header">
     <div class="global-header-inner">
-      <a class="global-brand" href="index.html" aria-label="{{TITLE}}"><span class="brand-code brand-code-icon" style="--brand-icon:url('{{BRAND_ICON}}')" aria-hidden="true">{{REGION_CODE}}</span><span class="global-brand-name">{{REGION_NAME}}<br>One Health</span><span class="global-brand-divider" aria-hidden="true"></span><span class="global-brand-atlas">AMR<br>Atlas</span></a>
-      <nav class="global-nav" aria-label="Navigazione principale"><a class="active" href="index.html">Atlante</a><a href="evidence.html">Evidenze</a><a href="publications.html">Pubblicazioni</a><a href="methodology.html">Metodo</a><a href="about.html">Progetto</a><a href="dissemination.html">Divulgazione</a></nav>
+      <a class="global-brand" href="index.html" aria-label="{{TITLE}}"><span class="brand-code brand-code-icon" style="--brand-icon:url('{{ASSET_BASE}}{{BRAND_ICON}}')" aria-hidden="true">{{REGION_CODE}}</span><span class="global-brand-name">{{REGION_NAME}}<br>One Health</span><span class="global-brand-divider" aria-hidden="true"></span><span class="global-brand-atlas">AMR<br>Atlas</span></a>
+      <nav class="global-nav" aria-label="{{t:nav.aria}}"><a{{NAV_INDEX}} href="index.html">{{t:nav.atlas}}</a><a{{NAV_EVIDENCE}} href="evidence.html">{{t:nav.evidence}}</a><a{{NAV_PUBLICATIONS}} href="publications.html">{{t:nav.publications}}</a><a{{NAV_METHOD}} href="methodology.html">{{t:nav.method}}</a><a{{NAV_ABOUT}} href="about.html">{{t:nav.about}}</a><a{{NAV_DISSEMINATION}} href="dissemination.html">{{t:nav.dissemination}}</a></nav>
+      <div class="language-nav" aria-label="{{t:lang.navLabel}}"><a href="{{IT_HREF}}" lang="it"{{IT_ATTR}}>IT</a><a href="{{EN_HREF}}" lang="en"{{EN_ATTR}}>EN</a></div>
     </div>
   </header>
   <div class="dashboard-shell">
-    <aside class="dashboard-sidebar" aria-label="Filtri dell'atlante">
-      <a class="atlas-brand" href="index.html"><span class="brand-code brand-code-icon" style="--brand-icon:url('{{BRAND_ICON}}')" aria-hidden="true">{{REGION_CODE}}</span><span><strong id="atlas-short-name">{{SHORT_NAME}}</strong><small>AMR Atlas</small></span></a>
+    <aside class="dashboard-sidebar" aria-label="{{t:sidebar.aria}}">
+      <a class="atlas-brand" href="index.html"><span class="brand-code brand-code-icon" style="--brand-icon:url('{{ASSET_BASE}}{{BRAND_ICON}}')" aria-hidden="true">{{REGION_CODE}}</span><span><strong id="atlas-short-name">{{SHORT_NAME}}</strong><small>AMR Atlas</small></span></a>
       <div class="sidebar-scroll">
-        <p class="sidebar-kicker">Esplora l'atlante</p>
-        <p class="panel-note">Filtra classe antimicrobica, microrganismo, matrice e periodo. Vocabolario allineato a EARS-Net / EFSA SSD2. I layer geografici si attivano separatamente nella mappa.</p>
-        <label for="amr-target">Classe o target AMR</label>
-        <select id="amr-target"><option value="AMR_ANY">Tutte le classi</option></select>
-        <label for="evidence-period">Periodo dell'evidenza</label>
-        <select id="evidence-period"><option value="ALL">Tutti i periodi pubblicati</option></select>
-        <label for="evidence-domain">Ambito One Health</label>
-        <select id="evidence-domain"><option value="ALL">Tutti gli ambiti</option></select>
-        <label for="amr-organism">Microrganismo</label>
-        <select id="amr-organism"><option value="ORG_ANY">Tutti i microrganismi</option></select>
-        <label for="amr-matrix">Matrice</label>
-        <select id="amr-matrix"><option value="MATRIX_ANY">Tutte le matrici</option></select>
-        <div class="amr-state" id="evidence-filter-state">Seleziona una classe per filtrare le evidenze pubbliche disponibili.</div>
+        <p class="sidebar-kicker">{{t:sidebar.kicker}}</p>
+        <p class="panel-note">{{t:sidebar.note}}</p>
+        <label for="amr-target">{{t:label.amrTarget}}</label>
+        <select id="amr-target"><option value="AMR_ANY">{{t:option.allClasses}}</option></select>
+        <label for="evidence-period">{{t:label.period}}</label>
+        <select id="evidence-period"><option value="ALL">{{t:option.allPeriods}}</option></select>
+        <label for="evidence-domain">{{t:label.domainField}}</label>
+        <select id="evidence-domain"><option value="ALL">{{t:option.allDomains}}</option></select>
+        <label for="amr-organism">{{t:label.organismField}}</label>
+        <select id="amr-organism"><option value="ORG_ANY">{{t:option.allOrganisms}}</option></select>
+        <label for="amr-matrix">{{t:label.matrixField}}</label>
+        <select id="amr-matrix"><option value="MATRIX_ANY">{{t:option.allMatrices}}</option></select>
+        <div class="amr-state" id="evidence-filter-state">{{t:filter.initialState}}</div>
         <div class="dashboard-tools">
-          <button id="reset-evidence-filter" type="button">Azzera filtri</button>
-          <span id="filter-status" aria-live="polite">Tutte le evidenze</span>
+          <button id="reset-evidence-filter" type="button">{{t:button.reset}}</button>
+          <span id="filter-status" aria-live="polite">{{t:filter.allEvidence}}</span>
         </div>
-        <div class="dashboard-metrics" aria-label="Riepilogo dei filtri">
-          <div><strong id="filter-metric-visible">0</strong><span>evidenze filtrate</span></div>
-          <div><strong id="filter-metric-sources">0</strong><span>fonti compatibili</span></div>
+        <div class="dashboard-metrics" aria-label="{{t:results.title}}">
+          <div><strong id="filter-metric-visible">0</strong><span>{{t:metric.filteredEvidence}}</span></div>
+          <div><strong id="filter-metric-sources">0</strong><span>{{t:metric.compatibleSources}}</span></div>
         </div>
         <section class="time-profile" aria-labelledby="time-profile-title">
-          <div class="filtered-heading"><h3 id="time-profile-title">Profilo temporale</h3><span>evidenze</span></div>
+          <div class="filtered-heading"><h3 id="time-profile-title">{{t:time.title}}</h3><span>{{t:time.unit}}</span></div>
           <div id="time-distribution" class="time-distribution" aria-live="polite"></div>
         </section>
         <section class="filtered-evidence" aria-labelledby="filtered-evidence-title">
-          <div class="filtered-heading"><h3 id="filtered-evidence-title">Risultati del filtro</h3><span id="filtered-count">0</span></div>
-          <div id="filtered-evidence-list"><p class="empty-filter">Caricamento dati...</p></div>
+          <div class="filtered-heading"><h3 id="filtered-evidence-title">{{t:results.title}}</h3><span id="filtered-count">0</span></div>
+          <div id="filtered-evidence-list"><p class="empty-filter">{{t:evidence.loading}}</p></div>
         </section>
       </div>
     </aside>
     <div class="dashboard-workspace">
-      <header class="workspace-topbar"><nav class="workspace-nav"><a class="active" href="index.html">Panoramica</a><a href="evidence.html">Evidenze</a><a href="publications.html">Pubblicazioni</a><a href="dissemination.html">Divulgazione</a></nav><span class="status" id="status">Caricamento configurazione...</span></header>
+      <header class="workspace-topbar"><nav class="workspace-nav"><a class="active" href="index.html">{{t:topbar.overview}}</a><a href="evidence.html">{{t:topbar.evidence}}</a><a href="publications.html">{{t:topbar.publications}}</a><a href="dissemination.html">{{t:topbar.dissemination}}</a></nav><span class="status" id="status">{{t:status.loadingConfig}}</span></header>
       <main class="workspace-main">
-        <section class="intro"><div><p class="section-kicker">CRUSCOTTO PUBBLICO</p><h1 id="atlas-title">{{TITLE}}</h1></div><p>Filtra classe, microrganismo, matrice e periodo. La mappa mostra layer geografici pubblici; i conteggi sono evidenze documentate, non una prevalenza regionale.</p></section>
-        <section class="overview-strip" aria-label="Copertura pubblica"><div><strong id="overview-localized">0</strong><span>elementi localizzati</span></div><div><strong id="overview-layers">0</strong><span>layer approvati</span></div><div><strong id="overview-evidence">0</strong><span>pubblicazioni curate</span></div></section>
-        <div class="atlas-grid"><section class="map-stage" aria-label="Mappa di {{REGION_NAME}}"><div id="map"></div><div class="map-empty-state" id="map-empty-state"><h2>Base cartografica pronta</h2><p>I layer regionali compariranno dopo la verifica di fonte, licenza e geometrie.</p></div></section><aside class="results-rail"><p class="rail-kicker">DETTAGLIO</p><h2 id="selected-evidence-title">Evidenza selezionata</h2><div id="selected-evidence" class="selected-evidence"><p>Seleziona un risultato del filtro per leggerne contesto, periodo e limiti di interpretazione.</p></div><a class="rail-link" href="evidence.html">Apri evidenze e fonti <span aria-hidden="true">→</span></a></aside></div>
-        <section class="data-digest"><div class="data-digest-heading"><div><p class="section-kicker">QUADRO DATI</p><h2>Fonti e indicatori pubblici</h2></div><a href="evidence.html">Apri il registro</a></div><div id="dashboard-evidence" class="digest-grid"></div></section>
-        <section class="literature-section"><h2>Approfondisci</h2><p>Consulta i rapporti ufficiali e il percorso divulgativo comune alle edizioni regionali.</p><div class="digest-grid"><article class="evidence-card"><p class="section-kicker">FONTI</p><h3>Pubblicazioni e risorse</h3><p>Rapporti, sorveglianza, documenti metodologici e materiali ufficiali collegati ai dati.</p><a class="rail-link" href="publications.html">Apri le pubblicazioni →</a></article><article class="evidence-card"><p class="section-kicker">FORMAZIONE</p><h3>Dodici moduli divulgativi</h3><p>Un percorso su antibiotici, resistenza antimicrobica, One Health e lettura responsabile dell'Atlante.</p><a class="rail-link" href="dissemination.html">Apri la divulgazione →</a></article></div></section>
+        <section class="intro"><div><p class="section-kicker">{{t:intro.kicker}}</p><h1 id="atlas-title">{{TITLE}}</h1></div><p>{{t:intro.lead}}</p></section>
+        <section class="overview-strip" aria-label="{{t:digest.title}}"><div><strong id="overview-localized">0</strong><span>{{t:overview.localized}}</span></div><div><strong id="overview-layers">0</strong><span>{{t:overview.layers}}</span></div><div><strong id="overview-evidence">0</strong><span>{{t:overview.publications}}</span></div></section>
+        <div class="atlas-grid"><section class="map-stage" aria-label="{{t:map.aria}}"><div id="map"></div><div class="map-empty-state" id="map-empty-state"><h2>{{t:map.emptyTitle}}</h2><p>{{t:map.emptyBody}}</p></div></section><aside class="results-rail"><p class="rail-kicker">{{t:detail.kicker}}</p><h2 id="selected-evidence-title">{{t:detail.title}}</h2><div id="selected-evidence" class="selected-evidence"><p>{{t:detail.placeholder}}</p></div><a class="rail-link" href="evidence.html">{{t:detail.openEvidence}} <span aria-hidden="true">→</span></a></aside></div>
+        <section class="data-digest"><div class="data-digest-heading"><div><p class="section-kicker">{{t:digest.kicker}}</p><h2>{{t:digest.title}}</h2></div><a href="evidence.html">{{t:digest.open}}</a></div><div id="dashboard-evidence" class="digest-grid"></div></section>
+        <section class="literature-section"><h2>{{t:literature.homeTitle}}</h2><p>{{t:literature.homeLead}}</p><div class="digest-grid"><article class="evidence-card"><p class="section-kicker">{{t:card.sources.kicker}}</p><h3>{{t:card.sources.title}}</h3><p>{{t:card.sources.body}}</p><a class="rail-link" href="publications.html">{{t:card.sources.link}} →</a></article><article class="evidence-card"><p class="section-kicker">{{t:card.learn.kicker}}</p><h3>{{t:card.learn.title}}</h3><p>{{t:card.learn.body}}</p><a class="rail-link" href="dissemination.html">{{t:card.learn.link}} →</a></article></div></section>
       </main>
     </div>
   </div>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="atlas-config.js"></script><script src="assets/atlas-core.js?v=0.5.11"></script><script src="assets/sidebar-filters.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="{{ASSET_BASE}}assets/i18n.js?v={{ENGINE_VERSION}}"></script><script src="{{ASSET_BASE}}atlas-config.js"></script><script src="{{ASSET_BASE}}assets/atlas-core.js?v={{ENGINE_VERSION}}"></script><script src="{{ASSET_BASE}}assets/sidebar-filters.js?v={{ENGINE_VERSION}}"></script>
 </body>
 </html>

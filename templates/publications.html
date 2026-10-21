@@ -1,3 +1,40 @@
-<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Pubblicazioni · {{TITLE}}</title><link rel="icon" href="data:"><link rel="stylesheet" href="assets/styles.css?v=0.5.11"><link rel="stylesheet" href="assets/regional-base.css"></head>
-<body class="evidence-page"><header class="global-site-header"><div class="global-header-inner"><a class="global-brand" href="index.html"><span class="brand-code brand-code-icon" style="--brand-icon:url('{{BRAND_ICON}}')" aria-hidden="true">{{REGION_CODE}}</span><span class="global-brand-name">{{REGION_NAME}}<br>One Health</span><span class="global-brand-divider"></span><span class="global-brand-atlas">AMR<br>Atlas</span></a><nav class="global-nav" aria-label="Navigazione principale"><a href="index.html">Atlante</a><a href="evidence.html">Evidenze</a><a class="active" href="publications.html">Pubblicazioni</a><a href="methodology.html">Metodo</a><a href="about.html">Progetto</a><a href="dissemination.html">Divulgazione</a></nav></div></header>
-<main class="evidence-shell"><header class="evidence-hero"><p class="section-kicker">BIBLIOGRAFIA CURATA</p><h1>Pubblicazioni e risorse</h1><p>Rapporti istituzionali e letteratura scientifica collegati all'edizione {{REGION_NAME}}, mantenuti distinti dai dataset cartografici.</p></header><section class="literature-section"><div class="data-digest-heading"><div><h2>Rapporti e fonti istituzionali</h2><p id="publication-summary">Caricamento del catalogo...</p></div></div><div class="table-wrap"><table class="literature-table"><thead><tr><th>Anno</th><th>Pubblicazione</th><th>Ente</th><th>Ambito</th><th>Uso nell'Atlante</th><th>Fonte</th></tr></thead><tbody id="publication-rows"></tbody></table></div><p class="governance-note">La presenza nel catalogo non implica che i relativi dati siano pubblicati: lo stato distingue dataset approvati e fonti di contesto.</p></section><section class="literature-section"><div class="data-digest-heading"><div><h2>Letteratura scientifica di {{REGION_NAME}}</h2><p id="literature-summary">Caricamento della letteratura...</p></div></div><div class="publication-filters"><label for="literature-search">Cerca titolo, autore o località<input id="literature-search" type="search" placeholder="es. titolo, localita, AMR"></label><label for="literature-scope">Ambito<select id="literature-scope"><option value="ALL">Tutti gli ambiti</option></select></label></div><div class="table-wrap"><table class="literature-table"><thead><tr><th>Anno</th><th>Articolo</th><th>Rivista</th><th>Ambito</th><th>Collegamento territoriale</th><th>Fonte</th></tr></thead><tbody id="literature-rows"></tbody></table></div><p class="governance-note">Gli articoli descrivono studi regionali o locali. Non vengono trasformati automaticamente in prevalenze regionali né localizzati oltre la scala dichiarata dagli autori.</p></section></main><script src="atlas-config.js"></script><script src="assets/publications.js"></script></body></html>
+<!doctype html>
+<html lang="{{LANG}}" data-asset-base="{{ASSET_BASE}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="amr-atlas-common {{ENGINE_VERSION}}">
+  <title>{{t:page.publications}} · {{TITLE}}</title>
+  <link rel="alternate" hreflang="it" href="{{IT_HREF}}">
+  <link rel="alternate" hreflang="en" href="{{EN_HREF}}">
+  <link rel="icon" href="data:">
+  <link rel="stylesheet" href="{{ASSET_BASE}}assets/styles.css?v={{ENGINE_VERSION}}">
+  <link rel="stylesheet" href="{{ASSET_BASE}}assets/regional-base.css?v={{ENGINE_VERSION}}">
+</head>
+<body class="evidence-page">
+  <header class="global-site-header">
+    <div class="global-header-inner">
+      <a class="global-brand" href="index.html"><span class="brand-code brand-code-icon" style="--brand-icon:url('{{ASSET_BASE}}{{BRAND_ICON}}')" aria-hidden="true">{{REGION_CODE}}</span><span class="global-brand-name">{{REGION_NAME}}<br>One Health</span><span class="global-brand-divider"></span><span class="global-brand-atlas">AMR<br>Atlas</span></a>
+      <nav class="global-nav" aria-label="{{t:nav.aria}}"><a{{NAV_INDEX}} href="index.html">{{t:nav.atlas}}</a><a{{NAV_EVIDENCE}} href="evidence.html">{{t:nav.evidence}}</a><a{{NAV_PUBLICATIONS}} href="publications.html">{{t:nav.publications}}</a><a{{NAV_METHOD}} href="methodology.html">{{t:nav.method}}</a><a{{NAV_ABOUT}} href="about.html">{{t:nav.about}}</a><a{{NAV_DISSEMINATION}} href="dissemination.html">{{t:nav.dissemination}}</a></nav>
+      <div class="language-nav" aria-label="{{t:lang.navLabel}}"><a href="{{IT_HREF}}" lang="it"{{IT_ATTR}}>IT</a><a href="{{EN_HREF}}" lang="en"{{EN_ATTR}}>EN</a></div>
+    </div>
+  </header>
+  <main class="evidence-shell">
+    <header class="evidence-hero"><p class="section-kicker">{{t:publications.kicker}}</p><h1>{{t:publications.title}}</h1><p>{{t:publications.lead}}</p></header>
+    <section class="literature-section">
+      <div class="data-digest-heading"><div><h2>{{t:publications.reportsTitle}}</h2><p id="publication-summary">{{t:publications.loading}}</p></div></div>
+      <div class="table-wrap"><table class="literature-table"><thead><tr><th>{{t:table.year}}</th><th>{{t:table.publication}}</th><th>{{t:table.publisher}}</th><th>{{t:table.domain}}</th><th>{{t:table.atlasUse}}</th><th>{{t:table.source}}</th></tr></thead><tbody id="publication-rows"></tbody></table></div>
+      <p class="governance-note">{{t:publications.governance}}</p>
+    </section>
+    <section class="literature-section">
+      <div class="data-digest-heading"><div><h2>{{t:publications.literatureTitle}}</h2><p id="literature-summary">{{t:publications.literatureLoading}}</p></div></div>
+      <div class="publication-filters"><label for="literature-search">{{t:publications.searchLabel}}<input id="literature-search" type="search" placeholder="{{t:publications.searchPlaceholder}}"></label><label for="literature-scope">{{t:publications.scopeLabel}}<select id="literature-scope"><option value="ALL">{{t:publications.scopeAll}}</option></select></label></div>
+      <div class="table-wrap"><table class="literature-table"><thead><tr><th>{{t:table.year}}</th><th>{{t:table.article}}</th><th>{{t:table.journal}}</th><th>{{t:table.domain}}</th><th>{{t:table.territorial}}</th><th>{{t:table.source}}</th></tr></thead><tbody id="literature-rows"></tbody></table></div>
+      <p class="governance-note">{{t:publications.literatureNote}}</p>
+    </section>
+  </main>
+  <script src="{{ASSET_BASE}}assets/i18n.js?v={{ENGINE_VERSION}}"></script>
+  <script src="{{ASSET_BASE}}atlas-config.js"></script>
+  <script src="{{ASSET_BASE}}assets/publications.js?v={{ENGINE_VERSION}}"></script>
+</body>
+</html>

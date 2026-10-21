@@ -1,5 +1,12 @@
 ﻿(() => {
   'use strict';
+  const t = (key, vars) => (window.amrT ? window.amrT(key, vars) : key);
+  const assetUrl = path => (window.amrAsset ? window.amrAsset(path) : path);
+  const locale = () => (window.amrLocale ? window.amrLocale() : 'it-IT');
+  const labelFor = key => {
+    const value = t('label.' + key);
+    return value === 'label.' + key ? key : value;
+  };
   const cfg = window.AMR_ATLAS_CONFIG || {};
   const catalogUrl = (cfg.catalogs && cfg.catalogs.evidence) || 'public/data/evidence-catalog.json';
   const targetSelect = document.getElementById('amr-target');
@@ -9,7 +16,7 @@
   const matrixSelect = document.getElementById('amr-matrix');
   const resetButton = document.getElementById('reset-evidence-filter');
   if (!targetSelect || !periodSelect || !domainSelect || !resetButton) return;
-  const amrTargets = [['AMR_BETA_LACTAM','Beta-lattamici'],['AMR_CARBAPENEM','Carbapenemi'],['AMR_CEPHALOSPORIN','Cefalosporine di terza generazione'],['AMR_FLUOROQUINOLONE','Fluorochinoloni'],['AMR_AMINOGLYCOSIDE','Aminoglicosidi'],['AMR_TETRACYCLINE','Tetracicline'],['AMR_MACROLIDE','Macrolidi'],['AMR_GLYCOPEPTIDE','Glicopeptidi'],['AMR_COLISTIN','Colistina'],['AMR_MDR','Multiresistenza']];
+  const amrTargetIds = ['AMR_BETA_LACTAM','AMR_CARBAPENEM','AMR_CEPHALOSPORIN','AMR_FLUOROQUINOLONE','AMR_AMINOGLYCOSIDE','AMR_TETRACYCLINE','AMR_MACROLIDE','AMR_GLYCOPEPTIDE','AMR_COLISTIN','AMR_MDR'];
   const amrKeywords = {
     AMR_BETA_LACTAM: 'penicillin,penicillina,ampicillin,ampicillina,beta-lactam,beta-lattam,bla,kpc,oxa,ndm,carbapenem,cephalosporin,cefalospor,cefotaxime,ceftazidime,meticillin,meticillina,mrsa,esbl,ampc,meca,oxacillin',
     AMR_CARBAPENEM: 'carbapenem,carbapenemi,kpc,oxa-48,oxa48,oxa-244,ndm,imipenem,meropenem,crkp,crpa,cras',
@@ -22,17 +29,7 @@
     AMR_COLISTIN: 'colistin,colistina,mcr',
     AMR_MDR: 'multidrug,multiresist,mdr,xdr'
   };
-  const organisms = [
-    ['ORG_ECOLI','Escherichia coli'],
-    ['ORG_KLEBSIELLA','Klebsiella pneumoniae'],
-    ['ORG_SALMONELLA','Salmonella spp.'],
-    ['ORG_CAMPYLOBACTER','Campylobacter spp.'],
-    ['ORG_SAUREUS','Staphylococcus aureus / MRSA'],
-    ['ORG_ENTEROCOCCUS','Enterococcus spp.'],
-    ['ORG_PSEUDOMONAS','Pseudomonas aeruginosa'],
-    ['ORG_ACINETOBACTER','Acinetobacter spp.'],
-    ['ORG_ENTEROBACTERALES','Enterobacterales (altri)']
-  ];
+  const organismIds = ['ORG_ECOLI','ORG_KLEBSIELLA','ORG_SALMONELLA','ORG_CAMPYLOBACTER','ORG_SAUREUS','ORG_ENTEROCOCCUS','ORG_PSEUDOMONAS','ORG_ACINETOBACTER','ORG_ENTEROBACTERALES'];
   const organismKeywords = {
     ORG_ECOLI: 'e. coli,escherichia,crec,st131,blactx',
     ORG_KLEBSIELLA: 'klebsiella,crkp,k. pneumoniae,k pneumoniae',
@@ -44,17 +41,7 @@
     ORG_ACINETOBACTER: 'acinetobacter,cras',
     ORG_ENTEROBACTERALES: 'enterobacterales,enterobacter,kpc,mcr,esbl'
   };
-  const matrices = [
-    ['MATRIX_BLOOD_CSF','Sangue / liquor (isolati invasivi)'],
-    ['MATRIX_FAECES','Feci / allevamento'],
-    ['MATRIX_MILK','Latte / bulk tank'],
-    ['MATRIX_MEAT','Carne / carcassa / macello'],
-    ['MATRIX_WATER','Acque ambientali'],
-    ['MATRIX_WASTEWATER','Acque reflue / impianti'],
-    ['MATRIX_WILDLIFE','Fauna selvatica'],
-    ['MATRIX_LIVESTOCK','Consistenze zootecniche']
-  ];
-  const labels = {human_amr:'AMR e sorveglianza umana',antimicrobial_use:'Uso e stewardship degli antimicrobici',healthcare:'Infezioni correlate all assistenza',veterinary:'AMR e stewardship veterinaria',wildlife:'Fauna selvatica',food:'Alimenti e filiera',livestock:'Consistenze zootecniche',environment:'Ambiente e acque reflue'};
+  const matrixIds = ['MATRIX_BLOOD_CSF','MATRIX_FAECES','MATRIX_MILK','MATRIX_MEAT','MATRIX_WATER','MATRIX_WASTEWATER','MATRIX_WILDLIFE','MATRIX_LIVESTOCK'];
   const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const years = item => (String(item.period || '').match(/(?:19|20)\d{2}/g) || []).map(Number);
   const domain = item => {
@@ -88,9 +75,9 @@
   };
   const matchesMatrix = (item, payload, value) => !matrixSelect || value === 'MATRIX_ANY' || matrixTags(item, payload).includes(value);
   const addOptions = (select, values, fmt) => values.forEach(v => { const o = document.createElement('option'); o.value = v; o.textContent = fmt ? fmt(v) : v; select.appendChild(o); });
-  amrTargets.forEach(([v,l]) => addOptions(targetSelect, [v], () => l));
-  if (organismSelect) organisms.forEach(([v,l]) => addOptions(organismSelect, [v], () => l));
-  if (matrixSelect) matrices.forEach(([v,l]) => addOptions(matrixSelect, [v], () => l));
+  amrTargetIds.forEach(id => addOptions(targetSelect, [id], () => labelFor(id)));
+  if (organismSelect) organismIds.forEach(id => addOptions(organismSelect, [id], () => labelFor(id)));
+  if (matrixSelect) matrixIds.forEach(id => addOptions(matrixSelect, [id], () => labelFor(id)));
   let records = [];
   const payloads = new Map();
   const renderTime = filtered => {
@@ -100,12 +87,12 @@
     filtered.forEach(item => years(item).forEach(y => counts.set(y, (counts.get(y) || 0) + 1)));
     const ordered = [...counts.entries()].sort((a,b) => a[0]-b[0]);
     const max = Math.max(1, ...ordered.map(([,c]) => c));
-    root.innerHTML = ordered.length ? ordered.map(([y,c]) => '<div class="time-row"><span>' + y + '</span><i><b style="width:' + Math.max(4,c/max*100) + '%"></b></i><strong>' + c + '</strong></div>').join('') : '<p class="empty-filter">Nessun periodo compatibile.</p>';
+    root.innerHTML = ordered.length ? ordered.map(([y,c]) => '<div class="time-row"><span>' + y + '</span><i><b style="width:' + Math.max(4,c/max*100) + '%"></b></i><strong>' + c + '</strong></div>').join('') : '<p class="empty-filter">' + esc(t('filter.noPeriod')) + '</p>';
   };
   const showDetail = item => {
     const root = document.getElementById('selected-evidence');
     if (!root || !item) return;
-    root.innerHTML = '<p><strong>' + esc(item.title) + '</strong></p><p>' + esc(item.publisher||'') + ' · ' + esc(item.period||'') + ' · ' + esc(item.geography||'') + '</p><p>' + esc(item.note||'Evidenza pubblica aggregata; non e una prevalenza regionale.') + '</p>' + (item.source_url ? '<p><a href="' + esc(item.source_url) + '" target="_blank" rel="noreferrer">Fonte originale</a></p>' : '');
+    root.innerHTML = '<p><strong>' + esc(item.title) + '</strong></p><p>' + esc(item.publisher||'') + ' · ' + esc(item.period||'') + ' · ' + esc(item.geography||'') + '</p><p>' + esc(item.note||t('filter.detailFallback')) + '</p>' + (item.source_url ? '<p><a href="' + esc(item.source_url) + '" target="_blank" rel="noreferrer">' + esc(t('filter.sourceLink')) + '</a></p>' : '');
   };
   const render = () => {
     const selT = targetSelect.value, selP = periodSelect.value, selD = domainSelect.value;
@@ -115,22 +102,22 @@
       const payload = payloads.get(item.id);
       return matchesClass(item, payload, selT) && (selP === 'ALL' || years(item).includes(Number(selP))) && (selD === 'ALL' || domain(item) === selD) && matchesOrganism(item, payload, selO) && matchesMatrix(item, payload, selM);
     });
-    document.getElementById('filter-metric-visible').textContent = filtered.length.toLocaleString('it-IT');
-    document.getElementById('filter-metric-sources').textContent = new Set(filtered.map(i => i.publisher).filter(Boolean)).size.toLocaleString('it-IT');
-    document.getElementById('filtered-count').textContent = filtered.length + ' risultati';
-    const tLabel = targetSelect.selectedOptions[0] ? targetSelect.selectedOptions[0].textContent : 'tutte le classi';
-    const oLabel = organismSelect && organismSelect.selectedOptions[0] ? organismSelect.selectedOptions[0].textContent : 'tutti i microrganismi';
-    const mLabel = matrixSelect && matrixSelect.selectedOptions[0] ? matrixSelect.selectedOptions[0].textContent : 'tutte le matrici';
-    document.getElementById('filter-status').textContent = filtered.length + '/' + records.length + ' evidenze';
-    document.getElementById('evidence-filter-state').textContent = [tLabel, oLabel, mLabel, selP === 'ALL' ? 'tutti i periodi' : selP, selD === 'ALL' ? 'tutti gli ambiti' : labels[selD]].join(' · ') + '. I filtri agiscono sul registro; i layer cartografici restano sulla mappa.';
+    document.getElementById('filter-metric-visible').textContent = filtered.length.toLocaleString(locale());
+    document.getElementById('filter-metric-sources').textContent = new Set(filtered.map(i => i.publisher).filter(Boolean)).size.toLocaleString(locale());
+    document.getElementById('filtered-count').textContent = t('filter.resultsCount', { n: filtered.length });
+    const tLabel = targetSelect.selectedOptions[0] ? targetSelect.selectedOptions[0].textContent : t('option.allClasses');
+    const oLabel = organismSelect && organismSelect.selectedOptions[0] ? organismSelect.selectedOptions[0].textContent : t('option.allOrganisms');
+    const mLabel = matrixSelect && matrixSelect.selectedOptions[0] ? matrixSelect.selectedOptions[0].textContent : t('option.allMatrices');
+    document.getElementById('filter-status').textContent = t('filter.statusCount', { shown: filtered.length, total: records.length });
+    document.getElementById('evidence-filter-state').textContent = [tLabel, oLabel, mLabel, selP === 'ALL' ? t('filter.allPeriodsShort') : selP, selD === 'ALL' ? t('filter.allDomainsShort') : labelFor(selD)].join(' · ') + t('filter.stateSuffix');
     const list = document.getElementById('filtered-evidence-list');
-    list.innerHTML = filtered.length ? filtered.slice(0,7).map(item => '<a class="filtered-row" href="#" data-id="' + esc(item.id) + '"><span><strong>' + esc(item.title) + '</strong><small>' + esc(item.publisher) + ' · ' + esc(item.period) + '</small></span><em>' + esc(labels[domain(item)]||'Evidenza') + '</em></a>').join('') + (filtered.length > 7 ? '<p class="more-filter">Altri ' + (filtered.length-7) + ' risultati nella pagina Evidenze.</p>' : '') : '<p class="empty-filter">Nessuna evidenza pubblica corrisponde ai filtri selezionati.</p>';
+    list.innerHTML = filtered.length ? filtered.slice(0,7).map(item => '<a class="filtered-row" href="#" data-id="' + esc(item.id) + '"><span><strong>' + esc(item.title) + '</strong><small>' + esc(item.publisher) + ' · ' + esc(item.period) + '</small></span><em>' + esc(labelFor(domain(item)) === domain(item) ? t('filter.domainFallback') : labelFor(domain(item))) + '</em></a>').join('') + (filtered.length > 7 ? '<p class="more-filter">' + esc(t('filter.moreResults', { n: filtered.length - 7 })) + '</p>' : '') : '<p class="empty-filter">' + esc(t('filter.noMatch')) + '</p>';
     list.querySelectorAll('.filtered-row[data-id]').forEach(node => node.addEventListener('click', ev => { ev.preventDefault(); showDetail(records.find(r => r.id === node.getAttribute('data-id'))); }));
     renderTime(filtered);
   };
-  fetch(catalogUrl, {cache:'no-store'}).then(r => { if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); }).then(catalog => {
+  fetch(assetUrl(catalogUrl), {cache:'no-store'}).then(r => { if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); }).then(catalog => {
     records = (catalog.records || []).filter(i => i.publication_status === 'public_approved');
-    addOptions(domainSelect, [...new Set(records.map(domain))].sort((a,b)=>(labels[a]||a).localeCompare(labels[b]||b,'it')), v => labels[v]||v);
+    addOptions(domainSelect, [...new Set(records.map(domain))].sort((a,b)=>labelFor(a).localeCompare(labelFor(b), locale())), v => labelFor(v));
     addOptions(periodSelect, [...new Set(records.flatMap(years))].sort((a,b)=>b-a));
     const controls = [targetSelect, periodSelect, domainSelect, organismSelect, matrixSelect].filter(Boolean);
     controls.forEach(s => s.addEventListener('change', render));
@@ -142,9 +129,9 @@
       if (matrixSelect) matrixSelect.value='MATRIX_ANY';
       render();
     });
-    return Promise.all(records.map(item => item.data_file ? fetch(item.data_file,{cache:'no-store'}).then(r => r.ok ? r.json() : null).then(p => { if (p) payloads.set(item.id, p); }).catch(()=>null) : Promise.resolve())).then(render);
+    return Promise.all(records.map(item => item.data_file ? fetch(assetUrl(item.data_file),{cache:'no-store'}).then(r => r.ok ? r.json() : null).then(p => { if (p) payloads.set(item.id, p); }).catch(()=>null) : Promise.resolve())).then(render);
   }).catch(err => {
-    document.getElementById('evidence-filter-state').textContent = 'Filtri non disponibili: ' + err.message;
-    document.getElementById('filtered-evidence-list').innerHTML = '<p class="empty-filter">Catalogo delle evidenze non disponibile.</p>';
+    document.getElementById('evidence-filter-state').textContent = t('filter.unavailable', { message: err.message });
+    document.getElementById('filtered-evidence-list').innerHTML = '<p class="empty-filter">' + esc(t('filter.catalogMissing')) + '</p>';
   });
 })();

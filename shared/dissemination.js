@@ -29,12 +29,20 @@ const outreachModules = {
   ]
 };
 const outreachDeckSlugs = ['antibiotici-antimicrobici','batteri-virus-uso-appropriato','come-nasce-amr','brotzu-cefalosporine','one-health','amr-strutture-sanitarie','filiera-alimentare-animali','acque-reflue-resistoma','depuratori-corsi-acqua','ar-iss-ears-net-glass','leggere-atlante','azioni-possibili'];
-const assetRoot = document.documentElement.lang === 'en' ? '../' : '';
+const assetRoot = document.documentElement.getAttribute('data-asset-base') || '';
 
 function renderOutreach() {
-  const lang = document.documentElement.lang === 'en' ? 'en' : 'it';
+  const lang = window.amrLang ? window.amrLang() : (document.documentElement.lang === 'en' ? 'en' : 'it');
+  const tr = (key, vars) => (window.amrT ? window.amrT(key, vars) : key);
   const data = outreachModules[lang];
-  const labels = lang === 'en' ? {progress:'of 12', objective:'Learning objective', scenes:'Narration in three scenes', sources:'Essential sources', note:'Each module includes six slides, source links and speaker notes with video direction.', duration:'3–5 minute narrated presentation'} : {progress:'di 12', objective:'Obiettivo formativo', scenes:'Copione in tre scene', sources:'Fonti essenziali', note:'Ogni modulo include sei slide, link alle fonti e note di regia per il video.', duration:'Presentazione narrata di 3–5 minuti'};
+  const labels = {
+    progress: tr('outreach.progress'),
+    objective: tr('outreach.objective'),
+    scenes: tr('outreach.scenes'),
+    sources: tr('outreach.sources'),
+    note: tr('outreach.note'),
+    duration: tr('outreach.duration')
+  };
   const index = document.getElementById('outreach-index');
   const detail = document.getElementById('outreach-detail');
   let current = 0;
@@ -47,7 +55,7 @@ function renderOutreach() {
     if (lang === 'it' && i === 0) renderEmbeddedModuleOne(detail, deckUrl);
     else if (lang === 'it' && i === 1) renderEmbeddedModuleTwo(detail, deckUrl);
     else if (lang === 'it' && i >= 2 && typeof renderEmbeddedAdditional === 'function') renderEmbeddedAdditional(detail, deckUrl, i);
-    else detail.innerHTML = `<div class="outreach-progress"><span>${current+1} ${labels.progress}</span><i><b style="width:${((current+1)/12)*100}%"></b></i></div><p class="outreach-number">${lang==='en'?'MODULE':'MODULO'} ${String(current+1).padStart(2,'0')}</p><h2>${title}</h2><p class="outreach-summary">${summary}</p><div class="outreach-detail-grid"><section><h3>${labels.objective}</h3><p>${objective}</p></section><section><h3>${labels.scenes}</h3><ol>${scenes.map(s=>`<li>${s}</li>`).join('')}</ol></section><section><h3>${labels.sources}</h3><ul>${sources.map(([name,url])=>`<li><a href="${url}" ${url.startsWith('http')?'target="_blank" rel="noreferrer"':''}>${name} <span aria-hidden="true">↗</span></a></li>`).join('')}</ul></section></div><p class="outreach-format">${labels.duration}</p><p class="outreach-note">${labels.note}</p>`;
+    else detail.innerHTML = `<div class="outreach-progress"><span>${current+1} ${labels.progress}</span><i><b style="width:${((current+1)/12)*100}%"></b></i></div><p class="outreach-number">${tr('outreach.module')} ${String(current+1).padStart(2,'0')}</p><h2>${title}</h2><p class="outreach-summary">${summary}</p><div class="outreach-detail-grid"><section><h3>${labels.objective}</h3><p>${objective}</p></section><section><h3>${labels.scenes}</h3><ol>${scenes.map(s=>`<li>${s}</li>`).join('')}</ol></section><section><h3>${labels.sources}</h3><ul>${sources.map(([name,url])=>`<li><a href="${url}" ${url.startsWith('http')?'target="_blank" rel="noreferrer"':''}>${name} <span aria-hidden="true">↗</span></a></li>`).join('')}</ul></section></div><p class="outreach-format">${labels.duration}</p><p class="outreach-note">${labels.note}</p>`;
     index.querySelectorAll('[data-module]').forEach(button => button.addEventListener('click', () => show(Number(button.dataset.module))));
   }
   show(0);
