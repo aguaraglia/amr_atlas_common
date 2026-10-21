@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{TITLE}}</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="assets/styles.css?v=0.5.11">
+  <link rel="stylesheet" href="assets/regional-base.css">
+</head>
+<body class="atlas-dashboard">
+  <header class="global-site-header">
+    <div class="global-header-inner">
+      <a class="global-brand" href="index.html" aria-label="{{TITLE}}"><span class="brand-code brand-code-icon" style="--brand-icon:url('{{BRAND_ICON}}')" aria-hidden="true">{{REGION_CODE}}</span><span class="global-brand-name">{{REGION_NAME}}<br>One Health</span><span class="global-brand-divider" aria-hidden="true"></span><span class="global-brand-atlas">AMR<br>Atlas</span></a>
+      <nav class="global-nav" aria-label="Navigazione principale"><a class="active" href="index.html">Atlante</a><a href="evidence.html">Evidenze</a><a href="publications.html">Pubblicazioni</a><a href="methodology.html">Metodo</a><a href="about.html">Progetto</a><a href="dissemination.html">Divulgazione</a></nav>
+    </div>
+  </header>
+  <div class="dashboard-shell">
+    <aside class="dashboard-sidebar" aria-label="Filtri dell'atlante">
+      <a class="atlas-brand" href="index.html"><span class="brand-code brand-code-icon" style="--brand-icon:url('{{BRAND_ICON}}')" aria-hidden="true">{{REGION_CODE}}</span><span><strong id="atlas-short-name">{{SHORT_NAME}}</strong><small>AMR Atlas</small></span></a>
+      <div class="sidebar-scroll">
+        <p class="sidebar-kicker">Esplora l'atlante</p>
+        <p class="panel-note">Filtra classe antimicrobica, microrganismo, matrice e periodo. Vocabolario allineato a EARS-Net / EFSA SSD2. I layer geografici si attivano separatamente nella mappa.</p>
+        <label for="amr-target">Classe o target AMR</label>
+        <select id="amr-target"><option value="AMR_ANY">Tutte le classi</option></select>
+        <label for="evidence-period">Periodo dell'evidenza</label>
+        <select id="evidence-period"><option value="ALL">Tutti i periodi pubblicati</option></select>
+        <label for="evidence-domain">Ambito One Health</label>
+        <select id="evidence-domain"><option value="ALL">Tutti gli ambiti</option></select>
+        <label for="amr-organism">Microrganismo</label>
+        <select id="amr-organism"><option value="ORG_ANY">Tutti i microrganismi</option></select>
+        <label for="amr-matrix">Matrice</label>
+        <select id="amr-matrix"><option value="MATRIX_ANY">Tutte le matrici</option></select>
+        <div class="amr-state" id="evidence-filter-state">Seleziona una classe per filtrare le evidenze pubbliche disponibili.</div>
+        <div class="dashboard-tools">
+          <button id="reset-evidence-filter" type="button">Azzera filtri</button>
+          <span id="filter-status" aria-live="polite">Tutte le evidenze</span>
+        </div>
+        <div class="dashboard-metrics" aria-label="Riepilogo dei filtri">
+          <div><strong id="filter-metric-visible">0</strong><span>evidenze filtrate</span></div>
+          <div><strong id="filter-metric-sources">0</strong><span>fonti compatibili</span></div>
+        </div>
+        <section class="time-profile" aria-labelledby="time-profile-title">
+          <div class="filtered-heading"><h3 id="time-profile-title">Profilo temporale</h3><span>evidenze</span></div>
+          <div id="time-distribution" class="time-distribution" aria-live="polite"></div>
+        </section>
+        <section class="filtered-evidence" aria-labelledby="filtered-evidence-title">
+          <div class="filtered-heading"><h3 id="filtered-evidence-title">Risultati del filtro</h3><span id="filtered-count">0</span></div>
+          <div id="filtered-evidence-list"><p class="empty-filter">Caricamento dati...</p></div>
+        </section>
+      </div>
+    </aside>
+    <div class="dashboard-workspace">
+      <header class="workspace-topbar"><nav class="workspace-nav"><a class="active" href="index.html">Panoramica</a><a href="evidence.html">Evidenze</a><a href="publications.html">Pubblicazioni</a><a href="dissemination.html">Divulgazione</a></nav><span class="status" id="status">Caricamento configurazione...</span></header>
+      <main class="workspace-main">
+        <section class="intro"><div><p class="section-kicker">CRUSCOTTO PUBBLICO</p><h1 id="atlas-title">{{TITLE}}</h1></div><p>Filtra classe, microrganismo, matrice e periodo. La mappa mostra layer geografici pubblici; i conteggi sono evidenze documentate, non una prevalenza regionale.</p></section>
+        <section class="overview-strip" aria-label="Copertura pubblica"><div><strong id="overview-localized">0</strong><span>elementi localizzati</span></div><div><strong id="overview-layers">0</strong><span>layer approvati</span></div><div><strong id="overview-evidence">0</strong><span>pubblicazioni curate</span></div></section>
+        <div class="atlas-grid"><section class="map-stage" aria-label="Mappa di {{REGION_NAME}}"><div id="map"></div><div class="map-empty-state" id="map-empty-state"><h2>Base cartografica pronta</h2><p>I layer regionali compariranno dopo la verifica di fonte, licenza e geometrie.</p></div></section><aside class="results-rail"><p class="rail-kicker">DETTAGLIO</p><h2 id="selected-evidence-title">Evidenza selezionata</h2><div id="selected-evidence" class="selected-evidence"><p>Seleziona un risultato del filtro per leggerne contesto, periodo e limiti di interpretazione.</p></div><a class="rail-link" href="evidence.html">Apri evidenze e fonti <span aria-hidden="true">→</span></a></aside></div>
+        <section class="data-digest"><div class="data-digest-heading"><div><p class="section-kicker">QUADRO DATI</p><h2>Fonti e indicatori pubblici</h2></div><a href="evidence.html">Apri il registro</a></div><div id="dashboard-evidence" class="digest-grid"></div></section>
+        <section class="literature-section"><h2>Approfondisci</h2><p>Consulta i rapporti ufficiali e il percorso divulgativo comune alle edizioni regionali.</p><div class="digest-grid"><article class="evidence-card"><p class="section-kicker">FONTI</p><h3>Pubblicazioni e risorse</h3><p>Rapporti, sorveglianza, documenti metodologici e materiali ufficiali collegati ai dati.</p><a class="rail-link" href="publications.html">Apri le pubblicazioni →</a></article><article class="evidence-card"><p class="section-kicker">FORMAZIONE</p><h3>Dodici moduli divulgativi</h3><p>Un percorso su antibiotici, resistenza antimicrobica, One Health e lettura responsabile dell'Atlante.</p><a class="rail-link" href="dissemination.html">Apri la divulgazione →</a></article></div></section>
+      </main>
+    </div>
+  </div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="atlas-config.js"></script><script src="assets/atlas-core.js?v=0.5.11"></script><script src="assets/sidebar-filters.js"></script>
+</body>
+</html>
