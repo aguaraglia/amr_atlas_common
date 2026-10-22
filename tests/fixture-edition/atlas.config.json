@@ -1,0 +1,19 @@
+{
+  "id": "fixture_amr_atlas",
+  "regionCode": "FIX",
+  "regionName": "Fixture",
+  "title": "Fixture One Health AMR Atlas",
+  "shortName": "Fixture",
+  "brandIcon": "public/brand/mark.svg",
+  "dataStatusLabel": "Build fixture with empty catalogs.",
+  "publicScopeSummary": "No regional data. This directory only exercises the engine build.",
+  "map": {
+    "center": [42.5, 12.5],
+    "zoom": 5
+  },
+  "catalogs": {
+    "layers": "public/data/layer-catalog.json",
+    "evidence": "public/data/evidence-catalog.json",
+    "literature": "public/data/literature-catalog.json"
+  }
+}

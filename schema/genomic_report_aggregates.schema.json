@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aguaraglia.github.io/sardinia-one-health-amr-atlas/schema/genomic_report_aggregates.schema.json",
+  "title": "Public genomic report aggregate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["aggregate_id", "source_id", "organism", "amr_target_id", "geography_level", "privacy"],
+  "properties": {
+    "aggregate_id": {"type": "string"},
+    "source_id": {"type": "string"},
+    "organism": {"type": "string"},
+    "species_group": {"type": ["string", "null"]},
+    "amr_target_id": {"type": "string"},
+    "geography_level": {"type": "string", "enum": ["REGIONE", "BACINO", "COMUNE_GENERALIZZATO"]},
+    "geography_id": {"type": ["string", "null"]},
+    "sample_count": {"type": "integer", "minimum": 0},
+    "positive_count": {"type": "integer", "minimum": 0},
+    "observation_period": {"type": "string"},
+    "privacy": {"const": "public"},
+    "aggregation_method": {"type": "string"},
+    "pipeline_version": {"type": ["string", "null"]},
+    "notes": {"type": ["string", "null"]}
+  }
+}

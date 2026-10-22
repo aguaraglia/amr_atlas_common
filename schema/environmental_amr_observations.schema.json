@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aguaraglia.github.io/sardinia-one-health-amr-atlas/schema/environmental_amr_observations.schema.json",
+  "title": "Atlas environmental AMR observations",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["observation_id", "source_id", "matrix", "target_id", "target_type", "privacy"],
+  "properties": {
+    "observation_id": {"type": "string"},
+    "source_id": {"type": "string"},
+    "snapshot_id": {"type": ["string", "null"]},
+    "sample_id_public": {"type": ["string", "null"]},
+    "observation_period": {"type": ["string", "null"]},
+    "matrix": {"type": "string"},
+    "target_id": {"type": "string"},
+    "target_type": {"type": "string", "enum": ["ARG", "mobility_marker", "biomass_normalizer"]},
+    "reported_value": {"type": ["number", "null"]},
+    "reported_unit": {"type": ["string", "null"]},
+    "normalization_target_id": {"type": ["string", "null"]},
+    "normalized_value": {"type": ["number", "null"]},
+    "normalized_unit": {"type": ["string", "null"]},
+    "method_version": {"type": ["string", "null"]},
+    "geography_level": {"type": ["string", "null"]},
+    "geography_id": {"type": ["string", "null"]},
+    "privacy": {"type": "string", "enum": ["public", "generalized", "restricted"]},
+    "notes": {"type": ["string", "null"]}
+  }
+}

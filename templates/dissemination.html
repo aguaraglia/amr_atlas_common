@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="{{LANG}}" data-asset-base="{{ASSET_BASE}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="amr-atlas-common {{ENGINE_VERSION}}">
+  <title>{{t:page.dissemination}} · {{TITLE}}</title>
+  <link rel="alternate" hreflang="it" href="{{IT_HREF}}">
+  <link rel="alternate" hreflang="en" href="{{EN_HREF}}">
+  <link rel="icon" href="data:">
+  <link rel="stylesheet" href="{{ASSET_BASE}}assets/styles.css?v={{ENGINE_VERSION}}">
+  <link rel="stylesheet" href="{{ASSET_BASE}}assets/regional-base.css?v={{ENGINE_VERSION}}">
+  <script src="{{ASSET_BASE}}assets/i18n.js?v={{ENGINE_VERSION}}"></script>
+  <script defer src="{{ASSET_BASE}}assets/outreach-module-one.js?v={{ENGINE_VERSION}}"></script>
+  <script defer src="{{ASSET_BASE}}assets/outreach-module-two.js?v={{ENGINE_VERSION}}"></script>
+  <script defer src="{{ASSET_BASE}}assets/outreach-modules-three-twelve.js?v={{ENGINE_VERSION}}"></script>
+  <script defer src="{{ASSET_BASE}}assets/dissemination.js?v={{ENGINE_VERSION}}"></script>
+</head>
+<body class="evidence-page outreach-page">
+  <header class="global-site-header">
+    <div class="global-header-inner">
+      <a class="global-brand" href="index.html" aria-label="{{TITLE}}"><span class="brand-code brand-code-icon" style="--brand-icon:url('{{ASSET_BASE}}{{BRAND_ICON}}')" aria-hidden="true">{{REGION_CODE}}</span><span class="global-brand-name">{{REGION_NAME}}<br>One Health</span><span class="global-brand-divider" aria-hidden="true"></span><span class="global-brand-atlas">AMR<br>Atlas</span></a>
+      <nav class="global-nav" aria-label="{{t:nav.aria}}"><a{{NAV_INDEX}} href="index.html">{{t:nav.atlas}}</a><a{{NAV_EVIDENCE}} href="evidence.html">{{t:nav.evidence}}</a><a{{NAV_PUBLICATIONS}} href="publications.html">{{t:nav.publications}}</a><a{{NAV_METHOD}} href="methodology.html">{{t:nav.method}}</a><a{{NAV_ABOUT}} href="about.html">{{t:nav.about}}</a><a{{NAV_DISSEMINATION}} href="dissemination.html">{{t:nav.dissemination}}</a></nav>
+      <div class="language-nav" aria-label="{{t:lang.navLabel}}"><a href="{{IT_HREF}}" lang="it"{{IT_ATTR}}>IT</a><a href="{{EN_HREF}}" lang="en"{{EN_ATTR}}>EN</a></div>
+    </div>
+  </header>
+  <header class="site-header"><div><p class="eyebrow">{{REGION_NAME}} · One Health</p><h1>{{t:dissemination.title}}</h1><p class="subtitle">{{t:dissemination.subtitle}}</p></div><a class="header-back" href="index.html">{{t:dissemination.back}}</a></header>
+  <main class="outreach-shell">
+    <section class="outreach-intro"><div><h2>{{t:dissemination.headline}}</h2><p>{{t:dissemination.intro}}</p></div><p class="outreach-status">{{t:dissemination.statusLead}}<br><strong>{{t:dissemination.statusStrong}}</strong></p></section>
+    <section class="outreach-workspace" aria-label="{{t:dissemination.workspaceAria}}"><aside id="outreach-index" class="outreach-index" aria-label="{{t:dissemination.indexAria}}"></aside><article id="outreach-detail" class="outreach-detail" aria-live="polite"></article></section>
+    <section class="outreach-footnote"><strong>{{t:dissemination.responsible}}</strong> {{t:dissemination.responsibleBody}}</section>
+  </main>
+  <footer><span>{{TITLE}}</span><span>{{t:dissemination.footer}}</span></footer>
+</body>
+</html>
